@@ -1,0 +1,11 @@
+{
+  "name": "cashregister",
+  "private": true,
+  "description": "老式收银机按键音样本库",
+  "scripts": {
+    "install:all": "npm install --prefix backend && npm install --prefix frontend",
+    "backend": "npm start --prefix backend",
+    "dev": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix frontend"
+  }
+}
