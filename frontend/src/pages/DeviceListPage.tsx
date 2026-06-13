@@ -335,13 +335,17 @@ export function DeviceListPage() {
                 </Table.Td>
                 <Table.Td>{device.key_type}</Table.Td>
                 <Table.Td>
-                  <Group gap={4}>
-                    {(device.tags || []).map((tag) => (
-                      <Badge key={tag.id} variant="light" color="grape" size="sm">
-                        {tag.name}
-                      </Badge>
-                    ))}
-                  </Group>
+                  {(device.tags || []).length > 0 ? (
+                    <Group gap={4}>
+                      {device.tags.map((tag) => (
+                        <Badge key={tag.id} variant="light" color="grape" size="sm">
+                          {tag.name}
+                        </Badge>
+                      ))}
+                    </Group>
+                  ) : (
+                    <Text size="sm" c="dimmed">无</Text>
+                  )}
                 </Table.Td>
                 <Table.Td>{device.location}</Table.Td>
                 <Table.Td>

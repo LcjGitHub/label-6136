@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { Device, DeviceInput } from '../types/device';
+import type { Tag } from '../types/tag';
 import * as deviceApi from '../api/devices';
 import type { ExportResponse, RestoreRequest, RestoreResponse } from '../api/devices';
 
@@ -16,6 +17,7 @@ interface DeviceState {
   create: (input: DeviceInput) => Promise<Device>;
   update: (id: number, input: DeviceInput) => Promise<Device>;
   remove: (id: number) => Promise<void>;
+  updateTags: (id: number, tags: Tag[]) => void;
   clearCurrent: () => void;
   exportData: () => Promise<ExportResponse>;
   restoreData: (request: RestoreRequest) => Promise<RestoreResponse>;
@@ -75,6 +77,15 @@ export const useDeviceStore = create<DeviceState>((set) => ({
     set((state) => ({
       devices: state.devices.filter((d) => d.id !== id),
       current: state.current?.id === id ? null : state.current,
+    }));
+  },
+
+  updateTags: (id: number, tags: Tag[]) => {
+    set((state) => ({
+      devices: state.devices.map((d) =>
+        d.id === id ? { ...d, tags } : d
+      ),
+      current: state.current?.id === id ? { ...state.current, tags } : state.current,
     }));
   },
 

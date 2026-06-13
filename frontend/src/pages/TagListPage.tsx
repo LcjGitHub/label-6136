@@ -22,6 +22,9 @@ import type { TagInput } from '../types/tag';
 
 const emptyForm: TagInput = { name: '' };
 
+/**
+ * 从 axios 错误中提取后端返回的中文错误消息
+ */
 function extractErrorMessage(err: unknown): string {
   if (
     err &&
@@ -43,6 +46,9 @@ function extractErrorMessage(err: unknown): string {
   return '操作失败，请稍后重试';
 }
 
+/**
+ * 标签列表页：展示全部标签，支持新增、编辑与删除
+ */
 export function TagListPage() {
   const { tags, loading, error, fetchAll, create, update, remove } = useTagStore();
   const [modalOpen, setModalOpen] = useState(false);

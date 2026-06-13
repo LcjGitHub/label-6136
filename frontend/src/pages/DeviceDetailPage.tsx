@@ -26,13 +26,34 @@ import * as tagApi from '../api/tags';
 import type { DeviceInput } from '../types/device';
 import type { Tag } from '../types/tag';
 
+function extractErrorMessage(err: unknown): string {
+  if (
+    err &&
+    typeof err === 'object' &&
+    'response' in err &&
+    err.response &&
+    typeof err.response === 'object' &&
+    'data' in err.response &&
+    err.response.data &&
+    typeof err.response.data === 'object' &&
+    'error' in err.response.data &&
+    typeof (err.response.data as { error: unknown }).error === 'string'
+  ) {
+    return (err.response.data as { error: string }).error;
+  }
+  if (err instanceof Error) {
+    return err.message;
+  }
+  return '操作失败，请稍后重试';
+}
+
 /**
- * 设备详情页：查看与编辑单条样本
+ * 设备详情页：查看与编辑单条样本，支持标签绑定与解除
  */
 export function DeviceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { current, loading, error, fetchOne, update, remove, clearCurrent } = useDeviceStore();
+  const { current, loading, error, fetchOne, update, remove, clearCurrent, updateTags } = useDeviceStore();
   const { keyTypes, fetchAll: fetchKeyTypes } = useKeyTypeStore();
   const { tags: allTags, fetchAll: fetchAllTags } = useTagStore();
   const [editing, setEditing] = useState(false);
@@ -53,6 +74,7 @@ export function DeviceDetailPage() {
 
   useEffect(() => {
     if (current) {
+      document.title = current.brand_model;
       setForm({
         brand_model: current.brand_model,
         era: current.era,
@@ -100,9 +122,10 @@ export function DeviceDetailPage() {
     try {
       const updated = await tagApi.bindDeviceTag(Number(id), Number(selectedTagId));
       setDeviceTags(updated);
+      updateTags(Number(id), updated);
       setSelectedTagId(null);
-    } catch {
-      setTagActionError('绑定标签失败');
+    } catch (err: unknown) {
+      setTagActionError(extractErrorMessage(err));
     }
   };
 
@@ -112,8 +135,9 @@ export function DeviceDetailPage() {
     try {
       const updated = await tagApi.unbindDeviceTag(Number(id), tagId);
       setDeviceTags(updated);
-    } catch {
-      setTagActionError('解除标签失败');
+      updateTags(Number(id), updated);
+    } catch (err: unknown) {
+      setTagActionError(extractErrorMessage(err));
     }
   };
 

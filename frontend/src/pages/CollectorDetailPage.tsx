@@ -118,9 +118,17 @@ export function CollectorDetailPage() {
             <span>返回列表</span>
           </Group>
         </Anchor>
-        <Anchor component={Link} to="/" inline c="dimmed">
-          样本列表
-        </Anchor>
+        <Group gap="md">
+          <Anchor component={Link} to="/key-types" inline c="dimmed">
+            按键类型词典
+          </Anchor>
+          <Anchor component={Link} to="/tags" inline c="dimmed">
+            标签管理
+          </Anchor>
+          <Anchor component={Link} to="/" inline c="dimmed">
+            样本列表
+          </Anchor>
+        </Group>
       </Group>
 
       {actionError && (

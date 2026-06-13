@@ -12,6 +12,9 @@ interface TagState {
   remove: (id: number) => Promise<void>;
 }
 
+/**
+ * 标签数据全局状态
+ */
 export const useTagStore = create<TagState>((set) => ({
   tags: [],
   loading: false,
