@@ -13,7 +13,10 @@ interface DeviceState {
   error: string | null;
   actionSuccess: string | null;
   searchKeyword: string;
-  fetchAll: (keyword?: string) => Promise<void>;
+  page: number;
+  pageSize: number;
+  total: number;
+  fetchAll: (keyword?: string, page?: number, pageSize?: number) => Promise<void>;
   fetchOne: (id: number) => Promise<void>;
   create: (input: DeviceInput) => Promise<Device>;
   update: (id: number, input: DeviceInput) => Promise<Device>;
@@ -23,6 +26,8 @@ interface DeviceState {
   exportData: () => Promise<ExportResponse>;
   restoreData: (request: RestoreRequest) => Promise<RestoreResponse>;
   setSearchKeyword: (keyword: string) => void;
+  setPage: (page: number) => void;
+  setPageSize: (pageSize: number) => void;
   clearSuccess: () => void;
   clearError: () => void;
 }
@@ -30,7 +35,7 @@ interface DeviceState {
 /**
  * 设备数据全局状态
  */
-export const useDeviceStore = create<DeviceState>((set) => ({
+export const useDeviceStore = create<DeviceState>((set, get) => ({
   devices: [],
   current: null,
   loading: false,
@@ -39,12 +44,27 @@ export const useDeviceStore = create<DeviceState>((set) => ({
   error: null,
   actionSuccess: null,
   searchKeyword: '',
+  page: 1,
+  pageSize: 3,
+  total: 0,
 
-  fetchAll: async (keyword?: string) => {
+  fetchAll: async (keyword?: string, page?: number, pageSize?: number) => {
     set({ loading: true, error: null });
     try {
-      const devices = await deviceApi.fetchDevices(keyword);
-      set({ devices, loading: false, searchKeyword: keyword ?? '' });
+      const state = get();
+      const currentKeyword = keyword !== undefined ? keyword : state.searchKeyword;
+      const currentPage = page !== undefined ? page : state.page;
+      const currentPageSize = pageSize !== undefined ? pageSize : state.pageSize;
+
+      const result = await deviceApi.fetchDevices(currentKeyword || undefined, currentPage, currentPageSize);
+      set({
+        devices: result.data,
+        total: result.total,
+        page: result.page,
+        pageSize: result.pageSize,
+        loading: false,
+        searchKeyword: currentKeyword,
+      });
     } catch {
       set({ loading: false, error: '加载设备列表失败' });
     }
@@ -62,7 +82,8 @@ export const useDeviceStore = create<DeviceState>((set) => ({
 
   create: async (input: DeviceInput) => {
     const created = await deviceApi.createDevice(input);
-    set((state) => ({ devices: [...state.devices, created] }));
+    const state = get();
+    await state.fetchAll(state.searchKeyword, 1, state.pageSize);
     return created;
   },
 
@@ -77,10 +98,10 @@ export const useDeviceStore = create<DeviceState>((set) => ({
 
   remove: async (id: number) => {
     await deviceApi.deleteDevice(id);
-    set((state) => ({
-      devices: state.devices.filter((d) => d.id !== id),
-      current: state.current?.id === id ? null : state.current,
-    }));
+    const state = get();
+    const maxPage = Math.max(1, Math.ceil((state.total - 1) / state.pageSize));
+    const newPage = Math.min(state.page, maxPage);
+    await state.fetchAll(state.searchKeyword, newPage, state.pageSize);
   },
 
   updateTags: (id: number, tags: Tag[]) => {
@@ -110,7 +131,9 @@ export const useDeviceStore = create<DeviceState>((set) => ({
     set({ restoring: true, error: null });
     try {
       const result = await deviceApi.restoreDevices(request);
-      set({ devices: result.data, restoring: false, actionSuccess: result.message });
+      const state = get();
+      await state.fetchAll(state.searchKeyword, 1, state.pageSize);
+      set({ restoring: false, actionSuccess: result.message });
       return result;
     } catch (err) {
       set({ restoring: false });
@@ -121,4 +144,6 @@ export const useDeviceStore = create<DeviceState>((set) => ({
   clearSuccess: () => set({ actionSuccess: null }),
   clearError: () => set({ error: null }),
   setSearchKeyword: (keyword: string) => set({ searchKeyword: keyword }),
+  setPage: (page: number) => set({ page }),
+  setPageSize: (pageSize: number) => set({ pageSize }),
 }));

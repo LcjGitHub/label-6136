@@ -157,7 +157,7 @@ export function DeviceComparePage() {
   }, []);
 
   useEffect(() => {
-    fetchAll();
+    fetchAll('', 1, 1000);
   }, [fetchAll]);
 
   const options = devices.map((d) => ({

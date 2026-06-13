@@ -31,30 +31,56 @@ function validateSoundRating(rating) {
 }
 
 /**
- * 获取全部设备列表
- * 查询参数：keyword（可选） - 按品牌型号、获取地点、声音描述模糊匹配
+ * 获取设备列表（支持分页和搜索）
+ * 查询参数：
+ *   keyword（可选）- 按品牌型号、获取地点、声音描述模糊匹配
+ *   page（可选）- 页码，默认 1
+ *   pageSize（可选）- 每页条数，默认全部
  */
 router.get('/', (req, res) => {
   const keyword = req.query.keyword;
+  const pageParam = req.query.page;
+  const pageSizeParam = req.query.pageSize;
 
-  let rows;
+  const page = pageParam && !isNaN(Number(pageParam)) ? Math.max(1, Number(pageParam)) : 1;
+  const pageSize = pageSizeParam && !isNaN(Number(pageSizeParam)) ? Math.max(1, Number(pageSizeParam)) : null;
+
+  let countSql = 'SELECT COUNT(*) as total FROM devices';
+  let dataSql = 'SELECT * FROM devices';
+  const params = [];
+
   if (keyword && typeof keyword === 'string' && keyword.trim()) {
     const searchTerm = `%${keyword.trim()}%`;
-    rows = db.all(
-      `SELECT * FROM devices
-       WHERE brand_model LIKE ? OR location LIKE ? OR sound_description LIKE ?
-       ORDER BY id ASC`,
-      [searchTerm, searchTerm, searchTerm]
-    );
-  } else {
-    rows = db.all('SELECT * FROM devices ORDER BY id ASC');
+    const whereClause = ' WHERE brand_model LIKE ? OR location LIKE ? OR sound_description LIKE ?';
+    countSql += whereClause;
+    dataSql += whereClause;
+    params.push(searchTerm, searchTerm, searchTerm);
   }
+
+  dataSql += ' ORDER BY id ASC';
+
+  if (pageSize) {
+    const offset = (page - 1) * pageSize;
+    dataSql += ' LIMIT ? OFFSET ?';
+    params.push(pageSize, offset);
+  }
+
+  const countResult = db.get(countSql, params.slice(0, countSql.includes('WHERE') ? 3 : 0));
+  const total = countResult.total;
+
+  const rows = db.all(dataSql, params);
 
   const devicesWithTags = rows.map((device) => ({
     ...device,
     tags: getTagsForDevice(device.id),
   }));
-  res.json(devicesWithTags);
+
+  res.json({
+    data: devicesWithTags,
+    total,
+    page,
+    pageSize: pageSize || total,
+  });
 });
 
 /**

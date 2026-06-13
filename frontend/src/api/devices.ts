@@ -5,6 +5,13 @@ const api = axios.create({
   baseURL: '/api',
 });
 
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export interface ExportResponse {
   exportTime: string;
   count: number;
@@ -24,12 +31,22 @@ export interface RestoreResponse {
 }
 
 /**
- * 获取全部设备
+ * 获取设备列表（支持分页和搜索）
  * @param keyword 可选搜索关键词，按品牌型号、获取地点、声音描述模糊匹配
+ * @param page 页码
+ * @param pageSize 每页条数
  */
-export async function fetchDevices(keyword?: string): Promise<Device[]> {
-  const { data } = await api.get<Device[]>('/devices', {
-    params: keyword ? { keyword } : {},
+export async function fetchDevices(
+  keyword?: string,
+  page?: number,
+  pageSize?: number
+): Promise<PaginatedResponse<Device>> {
+  const { data } = await api.get<PaginatedResponse<Device>>('/devices', {
+    params: {
+      ...(keyword ? { keyword } : {}),
+      ...(page ? { page } : {}),
+      ...(pageSize ? { pageSize } : {}),
+    },
   });
   return data;
 }

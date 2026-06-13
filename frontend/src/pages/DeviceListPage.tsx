@@ -11,6 +11,7 @@ import {
   Group,
   Loader,
   Modal,
+  Pagination,
   Radio,
   Stack,
   Table,
@@ -66,12 +67,16 @@ export function DeviceListPage() {
     error,
     actionSuccess,
     searchKeyword,
+    page,
+    pageSize,
+    total,
     fetchAll,
     create,
     remove,
     exportData,
     restoreData,
     setSearchKeyword,
+    setPage,
     clearSuccess,
     clearError,
   } = useDeviceStore();
@@ -115,7 +120,6 @@ export function DeviceListPage() {
       await create(form);
       setForm(emptyForm);
       setModalOpen(false);
-      fetchAll(searchKeyword);
     } catch (err: unknown) {
       setActionError(extractErrorMessage(err));
     } finally {
@@ -128,7 +132,6 @@ export function DeviceListPage() {
       setActionError(null);
       try {
         await remove(id);
-        fetchAll(searchKeyword);
       } catch (err: unknown) {
         setActionError(extractErrorMessage(err));
       }
@@ -225,20 +228,23 @@ export function DeviceListPage() {
       setRestoreModalOpen(false);
       setPendingRestoreData(null);
       setRestoreFileName('');
-      fetchAll(searchKeyword);
     } catch (err: unknown) {
       setActionError(extractErrorMessage(err));
     }
   };
 
   const handleSearch = () => {
-    fetchAll(searchInput.trim() || undefined);
+    const keyword = searchInput.trim() || undefined;
+    setSearchKeyword(keyword || '');
+    setPage(1);
+    fetchAll(keyword, 1, pageSize);
   };
 
   const handleClearSearch = () => {
     setSearchInput('');
     setSearchKeyword('');
-    fetchAll();
+    setPage(1);
+    fetchAll(undefined, 1, pageSize);
   };
 
   return (
@@ -322,7 +328,7 @@ export function DeviceListPage() {
         </Button>
         {searchKeyword && (
           <Text size="sm" c="dimmed">
-            当前搜索：「{searchKeyword}」（共 {devices.length} 条结果）
+            当前搜索：「{searchKeyword}」（共 {total} 条结果）
           </Text>
         )}
       </Group>
@@ -373,80 +379,98 @@ export function DeviceListPage() {
           </Table.Tbody>
         </Table>
       ) : (
-        <Table striped highlightOnHover withTableBorder>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>品牌型号</Table.Th>
-              <Table.Th>年代</Table.Th>
-              <Table.Th>按键类型</Table.Th>
-              <Table.Th>音质评分</Table.Th>
-              <Table.Th>标签</Table.Th>
-              <Table.Th>获取地点</Table.Th>
-              <Table.Th w={80}>操作</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {devices.map((device) => (
-              <Table.Tr key={device.id}>
-                <Table.Td>
-                  <Text component={Link} to={`/devices/${device.id}`} fw={500} c="blue">
-                    {device.brand_model}
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  <Badge variant="light">{device.era}</Badge>
-                </Table.Td>
-                <Table.Td>{device.key_type}</Table.Td>
-                <Table.Td>
-                  {(() => {
-                    const rating = device.sound_rating;
-                    if (rating == null) {
-                      return <Text size="sm" c="dimmed">—</Text>;
-                    }
-                    return (
-                      <Group gap={2}>
-                        {[1, 2, 3, 4, 5].map((value) =>
-                          rating >= value ? (
-                            <IconStarFilled key={value} size={14} color="#fbbf24" fill="#fbbf24" />
-                          ) : (
-                            <IconStar key={value} size={14} color="#d1d5db" />
-                          )
-                        )}
-                        <Text size="xs" c="dimmed" ml={4}>
-                          {rating}
-                        </Text>
-                      </Group>
-                    );
-                  })()}
-                </Table.Td>
-                <Table.Td>
-                  {(device.tags || []).length > 0 ? (
-                    <Group gap={4}>
-                      {device.tags.map((tag) => (
-                        <Badge key={tag.id} variant="light" color="grape" size="sm">
-                          {tag.name}
-                        </Badge>
-                      ))}
-                    </Group>
-                  ) : (
-                    <Text size="sm" c="dimmed">无</Text>
-                  )}
-                </Table.Td>
-                <Table.Td>{device.location}</Table.Td>
-                <Table.Td>
-                  <ActionIcon
-                    color="red"
-                    variant="subtle"
-                    aria-label="删除"
-                    onClick={() => handleDelete(device.id, device.brand_model)}
-                  >
-                    <IconTrash size={16} />
-                  </ActionIcon>
-                </Table.Td>
+        <>
+          <Table striped highlightOnHover withTableBorder>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>品牌型号</Table.Th>
+                <Table.Th>年代</Table.Th>
+                <Table.Th>按键类型</Table.Th>
+                <Table.Th>音质评分</Table.Th>
+                <Table.Th>标签</Table.Th>
+                <Table.Th>获取地点</Table.Th>
+                <Table.Th w={80}>操作</Table.Th>
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+            </Table.Thead>
+            <Table.Tbody>
+              {devices.map((device) => (
+                <Table.Tr key={device.id}>
+                  <Table.Td>
+                    <Text component={Link} to={`/devices/${device.id}`} fw={500} c="blue">
+                      {device.brand_model}
+                    </Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Badge variant="light">{device.era}</Badge>
+                  </Table.Td>
+                  <Table.Td>{device.key_type}</Table.Td>
+                  <Table.Td>
+                    {(() => {
+                      const rating = device.sound_rating;
+                      if (rating == null) {
+                        return <Text size="sm" c="dimmed">—</Text>;
+                      }
+                      return (
+                        <Group gap={2}>
+                          {[1, 2, 3, 4, 5].map((value) =>
+                            rating >= value ? (
+                              <IconStarFilled key={value} size={14} color="#fbbf24" fill="#fbbf24" />
+                            ) : (
+                              <IconStar key={value} size={14} color="#d1d5db" />
+                            )
+                          )}
+                          <Text size="xs" c="dimmed" ml={4}>
+                            {rating}
+                          </Text>
+                        </Group>
+                      );
+                    })()}
+                  </Table.Td>
+                  <Table.Td>
+                    {(device.tags || []).length > 0 ? (
+                      <Group gap={4}>
+                        {device.tags.map((tag) => (
+                          <Badge key={tag.id} variant="light" color="grape" size="sm">
+                            {tag.name}
+                          </Badge>
+                        ))}
+                      </Group>
+                    ) : (
+                      <Text size="sm" c="dimmed">无</Text>
+                    )}
+                  </Table.Td>
+                  <Table.Td>{device.location}</Table.Td>
+                  <Table.Td>
+                    <ActionIcon
+                      color="red"
+                      variant="subtle"
+                      aria-label="删除"
+                      onClick={() => handleDelete(device.id, device.brand_model)}
+                    >
+                      <IconTrash size={16} />
+                    </ActionIcon>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+
+          <Group justify="space-between" mt="md" align="center">
+            <Text size="sm" c="dimmed">
+              共 {total} 条，每页 {pageSize} 条
+            </Text>
+            <Pagination
+              value={page}
+              onChange={(newPage) => {
+                setPage(newPage);
+                fetchAll(searchKeyword || undefined, newPage, pageSize);
+              }}
+              total={Math.ceil(total / pageSize)}
+              boundaries={1}
+              siblings={1}
+            />
+          </Group>
+        </>
       )}
 
       <input
