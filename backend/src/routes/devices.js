@@ -24,6 +24,38 @@ router.get('/export', (_req, res) => {
 });
 
 /**
+ * 对比两个样本
+ * 查询参数：id1, id2
+ * 返回：{ device1, device2 }，若任一不存在返回 404 错误
+ */
+router.get('/compare', (req, res) => {
+  const { id1, id2 } = req.query;
+
+  if (!id1 || !id2) {
+    return res.status(400).json({ error: '需提供两个样本编号 id1 和 id2' });
+  }
+
+  if (id1 === id2) {
+    return res.status(400).json({ error: '两个样本编号不能相同' });
+  }
+
+  const device1 = db.get('SELECT * FROM devices WHERE id = ?', [id1]);
+  const device2 = db.get('SELECT * FROM devices WHERE id = ?', [id2]);
+
+  if (!device1 && !device2) {
+    return res.status(404).json({ error: `两个样本编号（${id1}、${id2}）均不存在` });
+  }
+  if (!device1) {
+    return res.status(404).json({ error: `样本编号 ${id1} 不存在` });
+  }
+  if (!device2) {
+    return res.status(404).json({ error: `样本编号 ${id2} 不存在` });
+  }
+
+  res.json({ device1, device2 });
+});
+
+/**
  * 还原样本数据
  * 请求体：{ data: Device[], mode: 'overwrite' | 'append' }
  */

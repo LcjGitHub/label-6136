@@ -1,0 +1,216 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  Alert,
+  Anchor,
+  Badge,
+  Button,
+  Container,
+  Grid,
+  Group,
+  Loader,
+  Paper,
+  Select,
+  SimpleGrid,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core';
+import { IconArrowLeft, IconExchange } from '@tabler/icons-react';
+import { useDeviceStore } from '../store/deviceStore';
+import { compareDevices } from '../api/devices';
+import type { Device } from '../types/device';
+
+function extractErrorMessage(err: unknown): string {
+  if (
+    err &&
+    typeof err === 'object' &&
+    'response' in err &&
+    err.response &&
+    typeof err.response === 'object' &&
+    'data' in err.response &&
+    err.response.data &&
+    typeof err.response.data === 'object' &&
+    'error' in err.response.data &&
+    typeof (err.response.data as { error: unknown }).error === 'string'
+  ) {
+    return (err.response.data as { error: string }).error;
+  }
+  if (err instanceof Error) {
+    return err.message;
+  }
+  return '操作失败，请稍后重试';
+}
+
+interface CompareFields {
+  brand_model: string;
+  era: string;
+  key_type: string;
+  sound_description: string;
+  location: string;
+}
+
+const fieldLabels: Record<keyof CompareFields, string> = {
+  brand_model: '品牌型号',
+  era: '年代',
+  key_type: '按键类型',
+  sound_description: '声音描述',
+  location: '获取地点',
+};
+
+function DeviceCard({ device, title, color }: { device: Device; title: string; color: 'blue' | 'violet' }) {
+  const fields: (keyof CompareFields)[] = ['brand_model', 'era', 'key_type', 'sound_description', 'location'];
+
+  return (
+    <Paper withBorder p="lg" radius="md" h="100%">
+      <Group justify="space-between" mb="md">
+        <Title order={4} c={color}>
+          {title}
+        </Title>
+        <Badge size="sm" variant="light" color={color}>
+          #{device.id}
+        </Badge>
+      </Group>
+      <Stack gap="md">
+        {fields.map((field) => (
+          <div key={field}>
+            <Text size="sm" c="dimmed" mb={4}>
+              {fieldLabels[field]}
+            </Text>
+            {field === 'era' ? (
+              <Badge variant="light" size="lg">
+                {device[field]}
+              </Badge>
+            ) : field === 'sound_description' ? (
+              <Text style={{ whiteSpace: 'pre-wrap' }}>{device[field]}</Text>
+            ) : (
+              <Text>{device[field]}</Text>
+            )}
+          </div>
+        ))}
+      </Stack>
+    </Paper>
+  );
+}
+
+/**
+ * 样本对比页：并排对比两个样本的详细信息
+ */
+export function DeviceComparePage() {
+  const { devices, fetchAll } = useDeviceStore();
+  const [id1, setId1] = useState<string | null>(null);
+  const [id2, setId2] = useState<string | null>(null);
+  const [device1, setDevice1] = useState<Device | null>(null);
+  const [device2, setDevice2] = useState<Device | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
+
+  const options = devices.map((d) => ({
+    value: String(d.id),
+    label: `#${d.id} · ${d.brand_model}`,
+  }));
+
+  const options1 = options.filter((o) => o.value !== id2);
+  const options2 = options.filter((o) => o.value !== id1);
+
+  const handleCompare = async () => {
+    if (!id1 || !id2) return;
+    setLoading(true);
+    setError(null);
+    setDevice1(null);
+    setDevice2(null);
+    try {
+      const result = await compareDevices(Number(id1), Number(id2));
+      setDevice1(result.device1);
+      setDevice2(result.device2);
+    } catch (err: unknown) {
+      setError(extractErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (id1 && id2) {
+      handleCompare();
+    } else {
+      setDevice1(null);
+      setDevice2(null);
+      setError(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id1, id2]);
+
+  return (
+    <Container size="xl" py="xl">
+      <Anchor component={Link} to="/" mb="lg" inline>
+        <Group gap={4}>
+          <IconArrowLeft size={16} />
+          <span>返回列表</span>
+        </Group>
+      </Anchor>
+
+      <Group justify="space-between" mb="lg">
+        <Group gap="sm">
+          <IconExchange size={28} stroke={1.5} />
+          <Title order={2}>样本对比</Title>
+        </Group>
+      </Group>
+
+      <Paper withBorder p="lg" radius="md" mb="lg">
+        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
+          <Select
+            label="选择样本 A"
+            placeholder="请选择第一个样本"
+            data={options1}
+            value={id1}
+            onChange={setId1}
+            clearable
+            searchable
+          />
+          <Select
+            label="选择样本 B"
+            placeholder="请选择第二个样本"
+            data={options2}
+            value={id2}
+            onChange={setId2}
+            clearable
+            searchable
+          />
+        </SimpleGrid>
+        {(!id1 || !id2) && (
+          <Text size="sm" c="dimmed" mt="md">
+            请选择两个不同的样本进行对比
+          </Text>
+        )}
+      </Paper>
+
+      {error && (
+        <Alert color="red" mb="md" onClose={() => setError(null)} withCloseButton>
+          {error}
+        </Alert>
+      )}
+
+      {loading && (
+        <Group justify="center" py="xl">
+          <Loader />
+        </Group>
+      )}
+
+      {!loading && device1 && device2 && (
+        <Grid gutter="lg">
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <DeviceCard device={device1} title="样本 A" color="blue" />
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <DeviceCard device={device2} title="样本 B" color="violet" />
+          </Grid.Col>
+        </Grid>
+      )}
+    </Container>
+  );
+}

@@ -77,3 +77,18 @@ export async function restoreDevices(request: RestoreRequest): Promise<RestoreRe
   const { data } = await api.post<RestoreResponse>('/devices/restore', request);
   return data;
 }
+
+/**
+ * 对比两个样本
+ */
+export interface CompareDevicesResponse {
+  device1: Device;
+  device2: Device;
+}
+
+export async function compareDevices(id1: number, id2: number): Promise<CompareDevicesResponse> {
+  const { data } = await api.get<CompareDevicesResponse>('/devices/compare', {
+    params: { id1, id2 },
+  });
+  return data;
+}

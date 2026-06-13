@@ -19,7 +19,7 @@ import {
   Textarea,
   Title,
 } from '@mantine/core';
-import { IconDownload, IconPlus, IconTrash, IconUpload, IconVolume } from '@tabler/icons-react';
+import { IconDownload, IconExchange, IconPlus, IconTrash, IconUpload, IconVolume } from '@tabler/icons-react';
 import { useDeviceStore } from '../store/deviceStore';
 import { useKeyTypeStore } from '../store/keyTypeStore';
 import type { Device, DeviceInput } from '../types/device';
@@ -235,6 +235,14 @@ export function DeviceListPage() {
           <Title order={2}>老式收银机按键音样本库</Title>
         </Group>
         <Group gap="sm">
+          <Button
+            variant="light"
+            leftSection={<IconExchange size={16} />}
+            component={Link}
+            to="/devices/compare"
+          >
+            样本对比
+          </Button>
           <Button
             variant="light"
             leftSection={<IconDownload size={16} />}
