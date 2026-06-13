@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   Alert,
   Anchor,
+  Autocomplete,
   Badge,
   Button,
   Container,
@@ -17,6 +18,7 @@ import {
 } from '@mantine/core';
 import { IconArrowLeft, IconDeviceFloppy, IconTrash } from '@tabler/icons-react';
 import { useDeviceStore } from '../store/deviceStore';
+import { useKeyTypeStore } from '../store/keyTypeStore';
 import type { DeviceInput } from '../types/device';
 
 /**
@@ -26,6 +28,7 @@ export function DeviceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { current, loading, error, fetchOne, update, remove, clearCurrent } = useDeviceStore();
+  const { keyTypes, fetchAll: fetchKeyTypes } = useKeyTypeStore();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<DeviceInput | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -34,8 +37,11 @@ export function DeviceDetailPage() {
     if (id) {
       fetchOne(Number(id));
     }
+    fetchKeyTypes();
     return () => clearCurrent();
-  }, [id, fetchOne, clearCurrent]);
+  }, [id, fetchOne, fetchKeyTypes, clearCurrent]);
+
+  const keyTypeOptions = keyTypes.map((k) => k.name);
 
   useEffect(() => {
     if (current) {
@@ -118,11 +124,13 @@ export function DeviceDetailPage() {
               value={form.era}
               onChange={(e) => setForm({ ...form, era: e.currentTarget.value })}
             />
-            <TextInput
+            <Autocomplete
               label="按键类型"
               required
+              placeholder="选择或输入按键类型"
+              data={keyTypeOptions}
               value={form.key_type}
-              onChange={(e) => setForm({ ...form, key_type: e.currentTarget.value })}
+              onChange={(value) => setForm({ ...form, key_type: value })}
             />
             <Textarea
               label="声音描述"

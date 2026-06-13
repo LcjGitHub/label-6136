@@ -97,11 +97,47 @@ function seedCollectors() {
 }
 
 /**
+ * 初始化按键类型词典 seed 数据
+ */
+function seedKeyTypes() {
+  const count = db.get('SELECT COUNT(*) AS cnt FROM key_types');
+  if (count && count.cnt > 0) {
+    return;
+  }
+
+  const keyTypes = [
+    {
+      name: '机械杠杆键',
+      description: '通过金属杠杆机构传动，手感鲜明，声音清脆有金属质感',
+    },
+    {
+      name: '薄膜键',
+      description: '采用薄膜开关结构，按键轻盈，声音低沉短促',
+    },
+    {
+      name: '橡胶穹顶键',
+      description: '橡胶 dome 结构提供回弹，触感偏软，声音闷响',
+    },
+  ];
+
+  for (const row of keyTypes) {
+    db.run(
+      `INSERT INTO key_types (name, description)
+       VALUES (?, ?)`,
+      [row.name, row.description]
+    );
+  }
+
+  console.log(`已写入 ${keyTypes.length} 条按键类型 seed 数据`);
+}
+
+/**
  * 执行全部 seed 初始化
  */
 function seed() {
   seedDevices();
   seedCollectors();
+  seedKeyTypes();
 }
 
 module.exports = { seed };

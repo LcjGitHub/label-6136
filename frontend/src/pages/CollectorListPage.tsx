@@ -76,6 +76,9 @@ export function CollectorListPage() {
         <Anchor component={Link} to="/" inline c="dimmed">
           样本列表
         </Anchor>
+        <Anchor component={Link} to="/key-types" inline c="dimmed">
+          按键类型词典
+        </Anchor>
       </Group>
 
       <Group justify="space-between" mb="lg">

@@ -107,6 +107,16 @@ async function initDb() {
       updated_at TEXT DEFAULT (datetime('now'))
     )
   `);
+
+  exec(`
+    CREATE TABLE IF NOT EXISTS key_types (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      description TEXT NOT NULL DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
 }
 
 module.exports = { initDb, all, get, run, exec };

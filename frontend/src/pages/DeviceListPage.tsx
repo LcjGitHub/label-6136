@@ -4,6 +4,7 @@ import {
   ActionIcon,
   Alert,
   Anchor,
+  Autocomplete,
   Badge,
   Button,
   Container,
@@ -19,6 +20,7 @@ import {
 } from '@mantine/core';
 import { IconPlus, IconTrash, IconVolume } from '@tabler/icons-react';
 import { useDeviceStore } from '../store/deviceStore';
+import { useKeyTypeStore } from '../store/keyTypeStore';
 import type { DeviceInput } from '../types/device';
 
 const emptyForm: DeviceInput = {
@@ -34,13 +36,17 @@ const emptyForm: DeviceInput = {
  */
 export function DeviceListPage() {
   const { devices, loading, error, fetchAll, create, remove } = useDeviceStore();
+  const { keyTypes, fetchAll: fetchKeyTypes } = useKeyTypeStore();
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<DeviceInput>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetchAll();
-  }, [fetchAll]);
+    fetchKeyTypes();
+  }, [fetchAll, fetchKeyTypes]);
+
+  const keyTypeOptions = keyTypes.map((k) => k.name);
 
   const handleCreate = async () => {
     setSubmitting(true);
@@ -62,6 +68,9 @@ export function DeviceListPage() {
   return (
     <Container size="lg" py="xl">
       <Group justify="flex-end" mb="md">
+        <Anchor component={Link} to="/key-types" inline c="dimmed">
+          按键类型词典
+        </Anchor>
         <Anchor component={Link} to="/collectors" inline c="dimmed">
           采集者档案
         </Anchor>
@@ -142,11 +151,13 @@ export function DeviceListPage() {
             value={form.era}
             onChange={(e) => setForm({ ...form, era: e.currentTarget.value })}
           />
-          <TextInput
+          <Autocomplete
             label="按键类型"
             required
+            placeholder="选择或输入按键类型"
+            data={keyTypeOptions}
             value={form.key_type}
-            onChange={(e) => setForm({ ...form, key_type: e.currentTarget.value })}
+            onChange={(value) => setForm({ ...form, key_type: value })}
           />
           <Textarea
             label="声音描述"
