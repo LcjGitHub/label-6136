@@ -1,18 +1,24 @@
 import { create } from 'zustand';
 import type { Device, DeviceInput } from '../types/device';
 import * as deviceApi from '../api/devices';
+import type { ExportResponse, RestoreRequest, RestoreResponse } from '../api/devices';
 
 interface DeviceState {
   devices: Device[];
   current: Device | null;
   loading: boolean;
   error: string | null;
+  actionSuccess: string | null;
   fetchAll: () => Promise<void>;
   fetchOne: (id: number) => Promise<void>;
   create: (input: DeviceInput) => Promise<Device>;
   update: (id: number, input: DeviceInput) => Promise<Device>;
   remove: (id: number) => Promise<void>;
   clearCurrent: () => void;
+  exportData: () => Promise<ExportResponse>;
+  restoreData: (request: RestoreRequest) => Promise<RestoreResponse>;
+  clearSuccess: () => void;
+  clearError: () => void;
 }
 
 /**
@@ -23,6 +29,7 @@ export const useDeviceStore = create<DeviceState>((set) => ({
   current: null,
   loading: false,
   error: null,
+  actionSuccess: null,
 
   fetchAll: async () => {
     set({ loading: true, error: null });
@@ -68,4 +75,32 @@ export const useDeviceStore = create<DeviceState>((set) => ({
   },
 
   clearCurrent: () => set({ current: null }),
+
+  exportData: async () => {
+    set({ loading: true, error: null });
+    try {
+      const result = await deviceApi.exportDevices();
+      set({ loading: false, actionSuccess: `导出成功，共 ${result.count} 条数据` });
+      return result;
+    } catch {
+      set({ loading: false, error: '导出失败' });
+      throw new Error('导出失败');
+    }
+  },
+
+  restoreData: async (request: RestoreRequest) => {
+    set({ loading: true, error: null });
+    try {
+      const result = await deviceApi.restoreDevices(request);
+      set({ devices: result.data, loading: false, actionSuccess: result.message });
+      return result;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '还原失败';
+      set({ loading: false, error: message });
+      throw err;
+    }
+  },
+
+  clearSuccess: () => set({ actionSuccess: null }),
+  clearError: () => set({ error: null }),
 }));

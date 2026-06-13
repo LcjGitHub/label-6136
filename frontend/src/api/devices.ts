@@ -5,6 +5,24 @@ const api = axios.create({
   baseURL: '/api',
 });
 
+export interface ExportResponse {
+  exportTime: string;
+  count: number;
+  data: Device[];
+}
+
+export interface RestoreRequest {
+  data: DeviceInput[];
+  mode: 'overwrite' | 'append';
+}
+
+export interface RestoreResponse {
+  message: string;
+  count: number;
+  mode: 'overwrite' | 'append';
+  data: Device[];
+}
+
 /**
  * 获取全部设备
  */
@@ -42,4 +60,20 @@ export async function updateDevice(id: number, input: DeviceInput): Promise<Devi
  */
 export async function deleteDevice(id: number): Promise<void> {
   await api.delete(`/devices/${id}`);
+}
+
+/**
+ * 导出全部样本数据
+ */
+export async function exportDevices(): Promise<ExportResponse> {
+  const { data } = await api.get<ExportResponse>('/devices/export');
+  return data;
+}
+
+/**
+ * 还原样本数据
+ */
+export async function restoreDevices(request: RestoreRequest): Promise<RestoreResponse> {
+  const { data } = await api.post<RestoreResponse>('/devices/restore', request);
+  return data;
 }
