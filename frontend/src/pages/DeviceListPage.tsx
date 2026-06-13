@@ -288,14 +288,20 @@ export function DeviceListPage() {
           placeholder="搜索品牌型号、获取地点或声音描述..."
           leftSection={<IconSearch size={16} />}
           rightSection={
-            searchInput || searchKeyword ? (
+            searchInput ? (
               <ActionIcon variant="subtle" color="gray" onClick={handleClearSearch} aria-label="清空搜索">
                 <IconX size={16} />
               </ActionIcon>
             ) : null
           }
           value={searchInput}
-          onChange={(e) => setSearchInput(e.currentTarget.value)}
+          onChange={(e) => {
+            const value = e.currentTarget.value;
+            setSearchInput(value);
+            if (value === '' && searchKeyword) {
+              handleClearSearch();
+            }
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               handleSearch();
