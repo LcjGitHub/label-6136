@@ -19,7 +19,7 @@ import {
   Textarea,
   Title,
 } from '@mantine/core';
-import { IconDownload, IconExchange, IconPlus, IconTrash, IconUpload, IconVolume } from '@tabler/icons-react';
+import { IconDownload, IconExchange, IconPlus, IconSearch, IconTrash, IconUpload, IconVolume, IconX } from '@tabler/icons-react';
 import { useDeviceStore } from '../store/deviceStore';
 import { useKeyTypeStore } from '../store/keyTypeStore';
 import type { Device, DeviceInput } from '../types/device';
@@ -64,11 +64,13 @@ export function DeviceListPage() {
     restoring,
     error,
     actionSuccess,
+    searchKeyword,
     fetchAll,
     create,
     remove,
     exportData,
     restoreData,
+    setSearchKeyword,
     clearSuccess,
     clearError,
   } = useDeviceStore();
@@ -81,6 +83,7 @@ export function DeviceListPage() {
   const [restoreMode, setRestoreMode] = useState<'overwrite' | 'append'>('overwrite');
   const [pendingRestoreData, setPendingRestoreData] = useState<DeviceInput[] | null>(null);
   const [restoreFileName, setRestoreFileName] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -111,6 +114,7 @@ export function DeviceListPage() {
       await create(form);
       setForm(emptyForm);
       setModalOpen(false);
+      fetchAll(searchKeyword);
     } catch (err: unknown) {
       setActionError(extractErrorMessage(err));
     } finally {
@@ -123,6 +127,7 @@ export function DeviceListPage() {
       setActionError(null);
       try {
         await remove(id);
+        fetchAll(searchKeyword);
       } catch (err: unknown) {
         setActionError(extractErrorMessage(err));
       }
@@ -212,10 +217,20 @@ export function DeviceListPage() {
       setRestoreModalOpen(false);
       setPendingRestoreData(null);
       setRestoreFileName('');
-      fetchAll();
+      fetchAll(searchKeyword);
     } catch (err: unknown) {
       setActionError(extractErrorMessage(err));
     }
+  };
+
+  const handleSearch = () => {
+    fetchAll(searchInput.trim() || undefined);
+  };
+
+  const handleClearSearch = () => {
+    setSearchInput('');
+    setSearchKeyword('');
+    fetchAll();
   };
 
   return (
@@ -268,6 +283,36 @@ export function DeviceListPage() {
         </Group>
       </Group>
 
+      <Group mb="md">
+        <TextInput
+          placeholder="搜索品牌型号、获取地点或声音描述..."
+          leftSection={<IconSearch size={16} />}
+          rightSection={
+            searchInput || searchKeyword ? (
+              <ActionIcon variant="subtle" color="gray" onClick={handleClearSearch} aria-label="清空搜索">
+                <IconX size={16} />
+              </ActionIcon>
+            ) : null
+          }
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.currentTarget.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleSearch();
+            }
+          }}
+          style={{ flex: 1, maxWidth: 480 }}
+        />
+        <Button leftSection={<IconSearch size={16} />} onClick={handleSearch}>
+          搜索
+        </Button>
+        {searchKeyword && (
+          <Text size="sm" c="dimmed">
+            当前搜索：「{searchKeyword}」（共 {devices.length} 条结果）
+          </Text>
+        )}
+      </Group>
+
       {actionSuccess && (
         <Alert color="green" mb="md" onClose={() => clearSuccess()} withCloseButton>
           {actionSuccess}
@@ -305,7 +350,9 @@ export function DeviceListPage() {
           <Table.Tbody>
             <Table.Tr>
               <Table.Td colSpan={6} ta="center" py="xl">
-                <Text c="dimmed">暂无样本数据</Text>
+                <Text c="dimmed">
+                  {searchKeyword ? `未找到与「${searchKeyword}」匹配的样本` : '暂无样本数据'}
+                </Text>
               </Table.Td>
             </Table.Tr>
           </Table.Tbody>

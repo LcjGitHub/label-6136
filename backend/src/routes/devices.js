@@ -18,9 +18,24 @@ function getTagsForDevice(deviceId) {
 
 /**
  * 获取全部设备列表
+ * 查询参数：keyword（可选） - 按品牌型号、获取地点、声音描述模糊匹配
  */
-router.get('/', (_req, res) => {
-  const rows = db.all('SELECT * FROM devices ORDER BY id ASC');
+router.get('/', (req, res) => {
+  const keyword = req.query.keyword;
+
+  let rows;
+  if (keyword && typeof keyword === 'string' && keyword.trim()) {
+    const searchTerm = `%${keyword.trim()}%`;
+    rows = db.all(
+      `SELECT * FROM devices
+       WHERE brand_model LIKE ? OR location LIKE ? OR sound_description LIKE ?
+       ORDER BY id ASC`,
+      [searchTerm, searchTerm, searchTerm]
+    );
+  } else {
+    rows = db.all('SELECT * FROM devices ORDER BY id ASC');
+  }
+
   const devicesWithTags = rows.map((device) => ({
     ...device,
     tags: getTagsForDevice(device.id),

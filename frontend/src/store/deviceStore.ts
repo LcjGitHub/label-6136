@@ -12,7 +12,8 @@ interface DeviceState {
   restoring: boolean;
   error: string | null;
   actionSuccess: string | null;
-  fetchAll: () => Promise<void>;
+  searchKeyword: string;
+  fetchAll: (keyword?: string) => Promise<void>;
   fetchOne: (id: number) => Promise<void>;
   create: (input: DeviceInput) => Promise<Device>;
   update: (id: number, input: DeviceInput) => Promise<Device>;
@@ -21,6 +22,7 @@ interface DeviceState {
   clearCurrent: () => void;
   exportData: () => Promise<ExportResponse>;
   restoreData: (request: RestoreRequest) => Promise<RestoreResponse>;
+  setSearchKeyword: (keyword: string) => void;
   clearSuccess: () => void;
   clearError: () => void;
 }
@@ -36,12 +38,13 @@ export const useDeviceStore = create<DeviceState>((set) => ({
   restoring: false,
   error: null,
   actionSuccess: null,
+  searchKeyword: '',
 
-  fetchAll: async () => {
+  fetchAll: async (keyword?: string) => {
     set({ loading: true, error: null });
     try {
-      const devices = await deviceApi.fetchDevices();
-      set({ devices, loading: false });
+      const devices = await deviceApi.fetchDevices(keyword);
+      set({ devices, loading: false, searchKeyword: keyword ?? '' });
     } catch {
       set({ loading: false, error: '加载设备列表失败' });
     }
@@ -117,4 +120,5 @@ export const useDeviceStore = create<DeviceState>((set) => ({
 
   clearSuccess: () => set({ actionSuccess: null }),
   clearError: () => set({ error: null }),
+  setSearchKeyword: (keyword: string) => set({ searchKeyword: keyword }),
 }));

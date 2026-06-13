@@ -25,9 +25,12 @@ export interface RestoreResponse {
 
 /**
  * 获取全部设备
+ * @param keyword 可选搜索关键词，按品牌型号、获取地点、声音描述模糊匹配
  */
-export async function fetchDevices(): Promise<Device[]> {
-  const { data } = await api.get<Device[]>('/devices');
+export async function fetchDevices(keyword?: string): Promise<Device[]> {
+  const { data } = await api.get<Device[]>('/devices', {
+    params: keyword ? { keyword } : {},
+  });
   return data;
 }
 
