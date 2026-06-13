@@ -4,7 +4,6 @@ import {
   Alert,
   Anchor,
   Badge,
-  Button,
   Container,
   Grid,
   Group,
@@ -20,6 +19,13 @@ import { IconArrowLeft, IconExchange } from '@tabler/icons-react';
 import { useDeviceStore } from '../store/deviceStore';
 import { compareDevices } from '../api/devices';
 import type { Device } from '../types/device';
+
+const DIFF_HIGHLIGHT_STYLE = {
+  backgroundColor: 'rgba(255, 213, 79, 0.25)',
+  padding: '8px 10px',
+  borderRadius: '6px',
+  border: '1px solid rgba(255, 152, 0, 0.4)',
+};
 
 function extractErrorMessage(err: unknown): string {
   if (
@@ -58,7 +64,17 @@ const fieldLabels: Record<keyof CompareFields, string> = {
   location: '获取地点',
 };
 
-function DeviceCard({ device, title, color }: { device: Device; title: string; color: 'blue' | 'violet' }) {
+function DeviceCard({
+  device,
+  otherDevice,
+  title,
+  color,
+}: {
+  device: Device;
+  otherDevice: Device;
+  title: string;
+  color: 'blue' | 'violet';
+}) {
   const fields: (keyof CompareFields)[] = ['brand_model', 'era', 'key_type', 'sound_description', 'location'];
 
   return (
@@ -72,22 +88,30 @@ function DeviceCard({ device, title, color }: { device: Device; title: string; c
         </Badge>
       </Group>
       <Stack gap="md">
-        {fields.map((field) => (
-          <div key={field}>
-            <Text size="sm" c="dimmed" mb={4}>
-              {fieldLabels[field]}
-            </Text>
-            {field === 'era' ? (
-              <Badge variant="light" size="lg">
-                {device[field]}
-              </Badge>
-            ) : field === 'sound_description' ? (
-              <Text style={{ whiteSpace: 'pre-wrap' }}>{device[field]}</Text>
-            ) : (
-              <Text>{device[field]}</Text>
-            )}
-          </div>
-        ))}
+        {fields.map((field) => {
+          const isDiff = device[field] !== otherDevice[field];
+          const valueStyle = isDiff ? DIFF_HIGHLIGHT_STYLE : undefined;
+
+          return (
+            <div key={field}>
+              <Text size="sm" c="dimmed" mb={4}>
+                {fieldLabels[field]}
+                {isDiff && <Text span size="xs" c="orange" fw={500} ml={6}>（值不同）</Text>}
+              </Text>
+              {field === 'era' ? (
+                <div style={valueStyle}>
+                  <Badge variant="light" size="lg">
+                    {device[field]}
+                  </Badge>
+                </div>
+              ) : field === 'sound_description' ? (
+                <Text style={{ whiteSpace: 'pre-wrap', ...valueStyle }}>{device[field]}</Text>
+              ) : (
+                <Text style={valueStyle}>{device[field]}</Text>
+              )}
+            </div>
+          );
+        })}
       </Stack>
     </Paper>
   );
@@ -104,6 +128,10 @@ export function DeviceComparePage() {
   const [device2, setDevice2] = useState<Device | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    document.title = '样本对比';
+  }, []);
 
   useEffect(() => {
     fetchAll();
@@ -147,6 +175,15 @@ export function DeviceComparePage() {
 
   return (
     <Container size="xl" py="xl">
+      <Group justify="flex-end" mb="md">
+        <Anchor component={Link} to="/key-types" inline c="dimmed">
+          按键类型词典
+        </Anchor>
+        <Anchor component={Link} to="/collectors" inline c="dimmed">
+          采集者档案
+        </Anchor>
+      </Group>
+
       <Anchor component={Link} to="/" mb="lg" inline>
         <Group gap={4}>
           <IconArrowLeft size={16} />
@@ -204,10 +241,10 @@ export function DeviceComparePage() {
       {!loading && device1 && device2 && (
         <Grid gutter="lg">
           <Grid.Col span={{ base: 12, md: 6 }}>
-            <DeviceCard device={device1} title="样本 A" color="blue" />
+            <DeviceCard device={device1} otherDevice={device2} title="样本 A" color="blue" />
           </Grid.Col>
           <Grid.Col span={{ base: 12, md: 6 }}>
-            <DeviceCard device={device2} title="样本 B" color="violet" />
+            <DeviceCard device={device2} otherDevice={device1} title="样本 B" color="violet" />
           </Grid.Col>
         </Grid>
       )}
