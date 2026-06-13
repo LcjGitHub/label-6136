@@ -17,6 +17,20 @@ function getTagsForDevice(deviceId) {
 }
 
 /**
+ * 校验音质评分：必须是 1-5 的整数，或 null/undefined
+ */
+function validateSoundRating(rating) {
+  if (rating === undefined || rating === null || rating === '') {
+    return null;
+  }
+  const num = Number(rating);
+  if (!Number.isInteger(num) || num < 1 || num > 5) {
+    return false;
+  }
+  return num;
+}
+
+/**
  * 获取全部设备列表
  * 查询参数：keyword（可选） - 按品牌型号、获取地点、声音描述模糊匹配
  */
@@ -112,6 +126,14 @@ router.post('/restore', (req, res) => {
         });
       }
     }
+    if (item.sound_rating !== undefined && item.sound_rating !== null) {
+      const rating = validateSoundRating(item.sound_rating);
+      if (rating === false) {
+        return res.status(400).json({
+          error: `第 ${i + 1} 条数据的「sound_rating」必须是 1-5 的整数`,
+        });
+      }
+    }
   }
 
   try {
@@ -139,17 +161,18 @@ router.post('/restore', (req, res) => {
       });
     }
 
-    const placeholders = data.map(() => '(?, ?, ?, ?, ?, datetime(\'now\'), datetime(\'now\'))').join(', ');
+    const placeholders = data.map(() => '(?, ?, ?, ?, ?, ?, datetime(\'now\'), datetime(\'now\'))').join(', ');
     const values = data.flatMap((item) => [
       item.brand_model.trim(),
       item.era.trim(),
       item.key_type.trim(),
       item.sound_description.trim(),
       item.location.trim(),
+      validateSoundRating(item.sound_rating),
     ]);
 
     db.run(
-      `INSERT INTO devices (brand_model, era, key_type, sound_description, location, created_at, updated_at)
+      `INSERT INTO devices (brand_model, era, key_type, sound_description, location, sound_rating, created_at, updated_at)
        VALUES ${placeholders}`,
       values
     );
@@ -185,15 +208,20 @@ router.get('/:id', (req, res) => {
  * 新增设备
  */
 router.post('/', (req, res) => {
-  const { brand_model, era, key_type, sound_description, location } = req.body;
+  const { brand_model, era, key_type, sound_description, location, sound_rating } = req.body;
   if (!brand_model || !era || !key_type || !sound_description || !location) {
     return res.status(400).json({ error: '所有字段均为必填' });
   }
 
+  const rating = validateSoundRating(sound_rating);
+  if (rating === false) {
+    return res.status(400).json({ error: '音质评分必须是 1-5 的整数' });
+  }
+
   const result = db.run(
-    `INSERT INTO devices (brand_model, era, key_type, sound_description, location)
-     VALUES (?, ?, ?, ?, ?)`,
-    [brand_model, era, key_type, sound_description, location]
+    `INSERT INTO devices (brand_model, era, key_type, sound_description, location, sound_rating)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [brand_model, era, key_type, sound_description, location, rating]
   );
 
   const created = db.get('SELECT * FROM devices WHERE id = ?', [result.lastInsertRowid]);
@@ -209,17 +237,22 @@ router.put('/:id', (req, res) => {
     return res.status(404).json({ error: '设备不存在' });
   }
 
-  const { brand_model, era, key_type, sound_description, location } = req.body;
+  const { brand_model, era, key_type, sound_description, location, sound_rating } = req.body;
   if (!brand_model || !era || !key_type || !sound_description || !location) {
     return res.status(400).json({ error: '所有字段均为必填' });
+  }
+
+  const rating = validateSoundRating(sound_rating);
+  if (rating === false) {
+    return res.status(400).json({ error: '音质评分必须是 1-5 的整数' });
   }
 
   db.run(
     `UPDATE devices
      SET brand_model = ?, era = ?, key_type = ?, sound_description = ?, location = ?,
-         updated_at = datetime('now')
+         sound_rating = ?, updated_at = datetime('now')
      WHERE id = ?`,
-    [brand_model, era, key_type, sound_description, location, req.params.id]
+    [brand_model, era, key_type, sound_description, location, rating, req.params.id]
   );
 
   const updated = db.get('SELECT * FROM devices WHERE id = ?', [req.params.id]);

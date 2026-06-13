@@ -19,7 +19,7 @@ import {
   Textarea,
   Title,
 } from '@mantine/core';
-import { IconDownload, IconExchange, IconPlus, IconSearch, IconTrash, IconUpload, IconVolume, IconX } from '@tabler/icons-react';
+import { IconDownload, IconExchange, IconPlus, IconSearch, IconStar, IconStarFilled, IconTrash, IconUpload, IconVolume, IconX } from '@tabler/icons-react';
 import { useDeviceStore } from '../store/deviceStore';
 import { useKeyTypeStore } from '../store/keyTypeStore';
 import type { Device, DeviceInput } from '../types/device';
@@ -30,6 +30,7 @@ const emptyForm: DeviceInput = {
   key_type: '',
   sound_description: '',
   location: '',
+  sound_rating: null,
 };
 
 function extractErrorMessage(err: unknown): string {
@@ -183,6 +184,12 @@ export function DeviceListPage() {
             throw new Error(`第 ${i + 1} 条数据的「${field}」为必填字段，不能为空`);
           }
         }
+        if (item.sound_rating !== undefined && item.sound_rating !== null) {
+          const rating = Number(item.sound_rating);
+          if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+            throw new Error(`第 ${i + 1} 条数据的「sound_rating」必须是 1-5 的整数`);
+          }
+        }
       }
 
       setPendingRestoreData(
@@ -192,6 +199,7 @@ export function DeviceListPage() {
           key_type: item.key_type,
           sound_description: item.sound_description,
           location: item.location,
+          sound_rating: item.sound_rating ?? null,
         }))
       );
       setRestoreFileName(file.name);
@@ -348,6 +356,7 @@ export function DeviceListPage() {
               <Table.Th>品牌型号</Table.Th>
               <Table.Th>年代</Table.Th>
               <Table.Th>按键类型</Table.Th>
+              <Table.Th>音质评分</Table.Th>
               <Table.Th>标签</Table.Th>
               <Table.Th>获取地点</Table.Th>
               <Table.Th w={80}>操作</Table.Th>
@@ -355,7 +364,7 @@ export function DeviceListPage() {
           </Table.Thead>
           <Table.Tbody>
             <Table.Tr>
-              <Table.Td colSpan={6} ta="center" py="xl">
+              <Table.Td colSpan={7} ta="center" py="xl">
                 <Text c="dimmed">
                   {searchKeyword ? `未找到与「${searchKeyword}」匹配的样本` : '暂无样本数据'}
                 </Text>
@@ -370,6 +379,7 @@ export function DeviceListPage() {
               <Table.Th>品牌型号</Table.Th>
               <Table.Th>年代</Table.Th>
               <Table.Th>按键类型</Table.Th>
+              <Table.Th>音质评分</Table.Th>
               <Table.Th>标签</Table.Th>
               <Table.Th>获取地点</Table.Th>
               <Table.Th w={80}>操作</Table.Th>
@@ -387,6 +397,24 @@ export function DeviceListPage() {
                   <Badge variant="light">{device.era}</Badge>
                 </Table.Td>
                 <Table.Td>{device.key_type}</Table.Td>
+                <Table.Td>
+                  {device.sound_rating ? (
+                    <Group gap={2}>
+                      {[1, 2, 3, 4, 5].map((value) =>
+                        device.sound_rating >= value ? (
+                          <IconStarFilled key={value} size={14} color="#fbbf24" fill="#fbbf24" />
+                        ) : (
+                          <IconStar key={value} size={14} color="#d1d5db" />
+                        )
+                      )}
+                      <Text size="xs" c="dimmed" ml={4}>
+                        {device.sound_rating}
+                      </Text>
+                    </Group>
+                  ) : (
+                    <Text size="sm" c="dimmed">—</Text>
+                  )}
+                </Table.Td>
                 <Table.Td>
                   {(device.tags || []).length > 0 ? (
                     <Group gap={4}>
@@ -461,6 +489,39 @@ export function DeviceListPage() {
             value={form.location}
             onChange={(e) => setForm({ ...form, location: e.currentTarget.value })}
           />
+          <div>
+            <Text size="sm" fw={500} mb={6}>
+              音质评分
+            </Text>
+            <Group gap={4}>
+              {[1, 2, 3, 4, 5].map((value) => (
+                <ActionIcon
+                  key={value}
+                  size="lg"
+                  color={form.sound_rating && form.sound_rating >= value ? 'yellow' : 'gray'}
+                  variant="subtle"
+                  onClick={() =>
+                    setForm({
+                      ...form,
+                      sound_rating: form.sound_rating === value ? null : value,
+                    })
+                  }
+                  aria-label={`${value} 星`}
+                >
+                  {form.sound_rating && form.sound_rating >= value ? (
+                    <IconStarFilled size={20} />
+                  ) : (
+                    <IconStar size={20} />
+                  )}
+                </ActionIcon>
+              ))}
+              {form.sound_rating && (
+                <Text size="sm" c="dimmed" ml="xs">
+                  {form.sound_rating} 分
+                </Text>
+              )}
+            </Group>
+          </div>
           <Group justify="flex-end" mt="md">
             <Button variant="default" onClick={() => setModalOpen(false)}>
               取消

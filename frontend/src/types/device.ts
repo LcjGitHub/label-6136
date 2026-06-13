@@ -7,6 +7,7 @@ export interface Device {
   key_type: string;
   sound_description: string;
   location: string;
+  sound_rating: number | null;
   tags: Tag[];
   created_at: string;
   updated_at: string;

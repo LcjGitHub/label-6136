@@ -18,7 +18,7 @@ import {
   Textarea,
   Title,
 } from '@mantine/core';
-import { IconArrowLeft, IconDeviceFloppy, IconPlus, IconTrash, IconX } from '@tabler/icons-react';
+import { IconArrowLeft, IconDeviceFloppy, IconPlus, IconStar, IconStarFilled, IconTrash, IconX } from '@tabler/icons-react';
 import { useDeviceStore } from '../store/deviceStore';
 import { useKeyTypeStore } from '../store/keyTypeStore';
 import { useTagStore } from '../store/tagStore';
@@ -81,6 +81,7 @@ export function DeviceDetailPage() {
         key_type: current.key_type,
         sound_description: current.sound_description,
         location: current.location,
+        sound_rating: current.sound_rating ?? null,
       });
       setDeviceTags(current.tags || []);
     }
@@ -212,6 +213,39 @@ export function DeviceDetailPage() {
               value={form.location}
               onChange={(e) => setForm({ ...form, location: e.currentTarget.value })}
             />
+            <div>
+              <Text size="sm" fw={500} mb={6}>
+                音质评分
+              </Text>
+              <Group gap={4}>
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <ActionIcon
+                    key={value}
+                    size="lg"
+                    color={form.sound_rating && form.sound_rating >= value ? 'yellow' : 'gray'}
+                    variant="subtle"
+                    onClick={() =>
+                      setForm({
+                        ...form,
+                        sound_rating: form.sound_rating === value ? null : value,
+                      })
+                    }
+                    aria-label={`${value} 星`}
+                  >
+                    {form.sound_rating && form.sound_rating >= value ? (
+                      <IconStarFilled size={20} />
+                    ) : (
+                      <IconStar size={20} />
+                    )}
+                  </ActionIcon>
+                ))}
+                {form.sound_rating && (
+                  <Text size="sm" c="dimmed" ml="xs">
+                    {form.sound_rating} 分
+                  </Text>
+                )}
+              </Group>
+            </div>
           </Stack>
         ) : (
           <Stack gap="md">
@@ -226,6 +260,29 @@ export function DeviceDetailPage() {
                 声音描述
               </Text>
               <Text>{current.sound_description}</Text>
+            </div>
+            <div>
+              <Text size="sm" c="dimmed">
+                音质评分
+              </Text>
+              <Group gap={2} mt={4}>
+                {[1, 2, 3, 4, 5].map((value) =>
+                  current.sound_rating && current.sound_rating >= value ? (
+                    <IconStarFilled key={value} size={18} color="#fbbf24" fill="#fbbf24" />
+                  ) : (
+                    <IconStar key={value} size={18} color="#d1d5db" />
+                  )
+                )}
+                {current.sound_rating ? (
+                  <Text size="sm" c="dimmed" ml="xs">
+                    {current.sound_rating} 分
+                  </Text>
+                ) : (
+                  <Text size="sm" c="dimmed">
+                    暂无评分
+                  </Text>
+                )}
+              </Group>
             </div>
             <div>
               <Text size="sm" c="dimmed">

@@ -92,10 +92,16 @@ async function initDb() {
       key_type TEXT NOT NULL,
       sound_description TEXT NOT NULL,
       location TEXT NOT NULL,
+      sound_rating INTEGER,
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
     )
   `);
+
+  try {
+    exec('ALTER TABLE devices ADD COLUMN sound_rating INTEGER');
+  } catch (e) {
+  }
 
   exec(`
     CREATE TABLE IF NOT EXISTS collectors (

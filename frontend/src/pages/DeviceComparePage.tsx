@@ -15,7 +15,7 @@ import {
   Text,
   Title,
 } from '@mantine/core';
-import { IconArrowLeft, IconExchange } from '@tabler/icons-react';
+import { IconArrowLeft, IconExchange, IconStar, IconStarFilled } from '@tabler/icons-react';
 import { useDeviceStore } from '../store/deviceStore';
 import { compareDevices } from '../api/devices';
 import type { Device } from '../types/device';
