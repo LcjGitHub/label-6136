@@ -12,6 +12,97 @@ router.get('/', (_req, res) => {
 });
 
 /**
+ * 导出全部样本数据
+ */
+router.get('/export', (_req, res) => {
+  const rows = db.all('SELECT * FROM devices ORDER BY id ASC');
+  res.json({
+    exportTime: new Date().toISOString(),
+    count: rows.length,
+    data: rows,
+  });
+});
+
+/**
+ * 还原样本数据
+ * 请求体：{ data: Device[], mode: 'overwrite' | 'append' }
+ */
+router.post('/restore', (req, res) => {
+  const { data, mode } = req.body;
+
+  if (!Array.isArray(data)) {
+    return res.status(400).json({ error: '数据格式错误，需为数组' });
+  }
+
+  if (mode !== 'overwrite' && mode !== 'append') {
+    return res.status(400).json({ error: '模式参数错误，需为 overwrite 或 append' });
+  }
+
+  const requiredFields = ['brand_model', 'era', 'key_type', 'sound_description', 'location'];
+  for (let i = 0; i < data.length; i++) {
+    const item = data[i];
+    for (const field of requiredFields) {
+      if (!item[field] || typeof item[field] !== 'string' || !item[field].trim()) {
+        return res.status(400).json({
+          error: `第 ${i + 1} 条数据的「${field}」为必填字段，不能为空`,
+        });
+      }
+    }
+  }
+
+  try {
+    if (mode === 'overwrite') {
+      db.run('DELETE FROM devices');
+      db.run("DELETE FROM sqlite_sequence WHERE name = 'devices'");
+
+      if (data.length === 0) {
+        return res.json({
+          message: '已清空全部样本数据',
+          count: 0,
+          mode,
+          data: [],
+        });
+      }
+    }
+
+    if (data.length === 0) {
+      const rows = db.all('SELECT * FROM devices ORDER BY id ASC');
+      return res.json({
+        message: '追加写入完成，共写入 0 条数据',
+        count: 0,
+        mode,
+        data: rows,
+      });
+    }
+
+    const placeholders = data.map(() => '(?, ?, ?, ?, ?, datetime(\'now\'), datetime(\'now\'))').join(', ');
+    const values = data.flatMap((item) => [
+      item.brand_model.trim(),
+      item.era.trim(),
+      item.key_type.trim(),
+      item.sound_description.trim(),
+      item.location.trim(),
+    ]);
+
+    db.run(
+      `INSERT INTO devices (brand_model, era, key_type, sound_description, location, created_at, updated_at)
+       VALUES ${placeholders}`,
+      values
+    );
+
+    const rows = db.all('SELECT * FROM devices ORDER BY id ASC');
+    res.json({
+      message: `还原成功，共写入 ${data.length} 条数据`,
+      count: data.length,
+      mode,
+      data: rows,
+    });
+  } catch (err) {
+    res.status(500).json({ error: '还原失败：' + (err instanceof Error ? err.message : '未知错误') });
+  }
+});
+
+/**
  * 按 ID 获取单条设备
  */
 router.get('/:id', (req, res) => {
@@ -78,78 +169,6 @@ router.delete('/:id', (req, res) => {
 
   db.run('DELETE FROM devices WHERE id = ?', [req.params.id]);
   res.json({ message: '已删除' });
-});
-
-/**
- * 导出全部样本数据
- */
-router.get('/export', (_req, res) => {
-  const rows = db.all('SELECT * FROM devices ORDER BY id ASC');
-  res.json({
-    exportTime: new Date().toISOString(),
-    count: rows.length,
-    data: rows,
-  });
-});
-
-/**
- * 还原样本数据
- * 请求体：{ data: Device[], mode: 'overwrite' | 'append' }
- */
-router.post('/restore', (req, res) => {
-  const { data, mode } = req.body;
-
-  if (!Array.isArray(data)) {
-    return res.status(400).json({ error: '数据格式错误，需为数组' });
-  }
-
-  if (mode !== 'overwrite' && mode !== 'append') {
-    return res.status(400).json({ error: '模式参数错误，需为 overwrite 或 append' });
-  }
-
-  const requiredFields = ['brand_model', 'era', 'key_type', 'sound_description', 'location'];
-  for (let i = 0; i < data.length; i++) {
-    const item = data[i];
-    for (const field of requiredFields) {
-      if (!item[field] || typeof item[field] !== 'string' || !item[field].trim()) {
-        return res.status(400).json({
-          error: `第 ${i + 1} 条数据的「${field}」为必填字段，不能为空`,
-        });
-      }
-    }
-  }
-
-  try {
-    if (mode === 'overwrite') {
-      db.run('DELETE FROM devices');
-      db.run("DELETE FROM sqlite_sequence WHERE name = 'devices'");
-    }
-
-    const placeholders = data.map(() => '(?, ?, ?, ?, ?, datetime(\'now\'), datetime(\'now\'))').join(', ');
-    const values = data.flatMap((item) => [
-      item.brand_model.trim(),
-      item.era.trim(),
-      item.key_type.trim(),
-      item.sound_description.trim(),
-      item.location.trim(),
-    ]);
-
-    db.run(
-      `INSERT INTO devices (brand_model, era, key_type, sound_description, location, created_at, updated_at)
-       VALUES ${placeholders}`,
-      values
-    );
-
-    const rows = db.all('SELECT * FROM devices ORDER BY id ASC');
-    res.json({
-      message: `还原成功，共写入 ${data.length} 条数据`,
-      count: data.length,
-      mode,
-      data: rows,
-    });
-  } catch (err) {
-    res.status(500).json({ error: '还原失败：' + (err instanceof Error ? err.message : '未知错误') });
-  }
 });
 
 module.exports = router;

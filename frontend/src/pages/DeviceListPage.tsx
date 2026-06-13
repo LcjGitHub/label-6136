@@ -32,6 +32,27 @@ const emptyForm: DeviceInput = {
   location: '',
 };
 
+function extractErrorMessage(err: unknown): string {
+  if (
+    err &&
+    typeof err === 'object' &&
+    'response' in err &&
+    err.response &&
+    typeof err.response === 'object' &&
+    'data' in err.response &&
+    err.response.data &&
+    typeof err.response.data === 'object' &&
+    'error' in err.response.data &&
+    typeof (err.response.data as { error: unknown }).error === 'string'
+  ) {
+    return (err.response.data as { error: string }).error;
+  }
+  if (err instanceof Error) {
+    return err.message;
+  }
+  return '操作失败，请稍后重试';
+}
+
 /**
  * 设备列表页：展示全部样本，支持新增、删除、导出备份与导入还原
  */
@@ -39,6 +60,8 @@ export function DeviceListPage() {
   const {
     devices,
     loading,
+    exporting,
+    restoring,
     error,
     actionSuccess,
     fetchAll,
@@ -53,6 +76,7 @@ export function DeviceListPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<DeviceInput>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [restoreModalOpen, setRestoreModalOpen] = useState(false);
   const [restoreMode, setRestoreMode] = useState<'overwrite' | 'append'>('overwrite');
   const [pendingRestoreData, setPendingRestoreData] = useState<DeviceInput[] | null>(null);
@@ -72,20 +96,23 @@ export function DeviceListPage() {
   }, [actionSuccess, clearSuccess]);
 
   useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => clearError(), 5000);
+    if (actionError) {
+      const timer = setTimeout(() => setActionError(null), 5000);
       return () => clearTimeout(timer);
     }
-  }, [error, clearError]);
+  }, [actionError]);
 
   const keyTypeOptions = keyTypes.map((k) => k.name);
 
   const handleCreate = async () => {
     setSubmitting(true);
+    setActionError(null);
     try {
       await create(form);
       setForm(emptyForm);
       setModalOpen(false);
+    } catch (err: unknown) {
+      setActionError(extractErrorMessage(err));
     } finally {
       setSubmitting(false);
     }
@@ -93,11 +120,17 @@ export function DeviceListPage() {
 
   const handleDelete = async (id: number, name: string) => {
     if (window.confirm(`确定删除「${name}」？`)) {
-      await remove(id);
+      setActionError(null);
+      try {
+        await remove(id);
+      } catch (err: unknown) {
+        setActionError(extractErrorMessage(err));
+      }
     }
   };
 
   const handleExport = async () => {
+    setActionError(null);
     try {
       const result = await exportData();
       const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
@@ -110,8 +143,8 @@ export function DeviceListPage() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch {
-      // 错误已在 store 中处理
+    } catch (err: unknown) {
+      setActionError(extractErrorMessage(err));
     }
   };
 
@@ -159,8 +192,7 @@ export function DeviceListPage() {
       setRestoreFileName(file.name);
       setRestoreModalOpen(true);
     } catch (err) {
-      const message = err instanceof Error ? err.message : '文件解析失败';
-      useDeviceStore.setState({ error: message });
+      setActionError(extractErrorMessage(err));
     } finally {
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -171,6 +203,7 @@ export function DeviceListPage() {
   const handleRestore = async () => {
     if (!pendingRestoreData) return;
 
+    setActionError(null);
     try {
       await restoreData({
         data: pendingRestoreData,
@@ -180,8 +213,8 @@ export function DeviceListPage() {
       setPendingRestoreData(null);
       setRestoreFileName('');
       fetchAll();
-    } catch {
-      // 错误已在 store 中处理
+    } catch (err: unknown) {
+      setActionError(extractErrorMessage(err));
     }
   };
 
@@ -206,7 +239,7 @@ export function DeviceListPage() {
             variant="light"
             leftSection={<IconDownload size={16} />}
             onClick={handleExport}
-            loading={loading}
+            loading={exporting}
           >
             导出备份
           </Button>
@@ -214,7 +247,7 @@ export function DeviceListPage() {
             variant="light"
             leftSection={<IconUpload size={16} />}
             onClick={handleImportClick}
-            loading={loading}
+            loading={restoring}
           >
             导入还原
           </Button>
@@ -227,6 +260,12 @@ export function DeviceListPage() {
       {actionSuccess && (
         <Alert color="green" mb="md" onClose={() => clearSuccess()} withCloseButton>
           {actionSuccess}
+        </Alert>
+      )}
+
+      {actionError && (
+        <Alert color="red" mb="md" onClose={() => setActionError(null)} withCloseButton>
+          {actionError}
         </Alert>
       )}
 
@@ -407,7 +446,7 @@ export function DeviceListPage() {
             <Button
               color={restoreMode === 'overwrite' ? 'red' : 'blue'}
               onClick={handleRestore}
-              loading={loading}
+              loading={restoring}
             >
               确认还原
             </Button>

@@ -7,6 +7,8 @@ interface DeviceState {
   devices: Device[];
   current: Device | null;
   loading: boolean;
+  exporting: boolean;
+  restoring: boolean;
   error: string | null;
   actionSuccess: string | null;
   fetchAll: () => Promise<void>;
@@ -28,6 +30,8 @@ export const useDeviceStore = create<DeviceState>((set) => ({
   devices: [],
   current: null,
   loading: false,
+  exporting: false,
+  restoring: false,
   error: null,
   actionSuccess: null,
 
@@ -77,26 +81,25 @@ export const useDeviceStore = create<DeviceState>((set) => ({
   clearCurrent: () => set({ current: null }),
 
   exportData: async () => {
-    set({ loading: true, error: null });
+    set({ exporting: true, error: null });
     try {
       const result = await deviceApi.exportDevices();
-      set({ loading: false, actionSuccess: `导出成功，共 ${result.count} 条数据` });
+      set({ exporting: false, actionSuccess: `导出成功，共 ${result.count} 条数据` });
       return result;
-    } catch {
-      set({ loading: false, error: '导出失败' });
-      throw new Error('导出失败');
+    } catch (err) {
+      set({ exporting: false });
+      throw err;
     }
   },
 
   restoreData: async (request: RestoreRequest) => {
-    set({ loading: true, error: null });
+    set({ restoring: true, error: null });
     try {
       const result = await deviceApi.restoreDevices(request);
-      set({ devices: result.data, loading: false, actionSuccess: result.message });
+      set({ devices: result.data, restoring: false, actionSuccess: result.message });
       return result;
     } catch (err) {
-      const message = err instanceof Error ? err.message : '还原失败';
-      set({ loading: false, error: message });
+      set({ restoring: false });
       throw err;
     }
   },
