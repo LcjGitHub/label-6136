@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom';
 import {
   ActionIcon,
   Alert,
+  Anchor,
   Button,
   Container,
   Group,
   Loader,
   Modal,
+  Paper,
   Stack,
   Table,
   Text,
@@ -33,6 +35,11 @@ export function CollectorListPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<CollectorInput>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    document.title = '采集者档案';
+  }, []);
 
   useEffect(() => {
     fetchAll();
@@ -40,10 +47,13 @@ export function CollectorListPage() {
 
   const handleCreate = async () => {
     setSubmitting(true);
+    setActionError(null);
     try {
       await create(form);
       setForm(emptyForm);
       setModalOpen(false);
+    } catch {
+      setActionError('新增失败，请稍后重试');
     } finally {
       setSubmitting(false);
     }
@@ -51,12 +61,23 @@ export function CollectorListPage() {
 
   const handleDelete = async (id: number, name: string) => {
     if (window.confirm(`确定删除「${name}」？`)) {
-      await remove(id);
+      setActionError(null);
+      try {
+        await remove(id);
+      } catch {
+        setActionError('删除失败，请稍后重试');
+      }
     }
   };
 
   return (
     <Container size="lg" py="xl">
+      <Group justify="flex-end" mb="md">
+        <Anchor component={Link} to="/" inline c="dimmed">
+          样本列表
+        </Anchor>
+      </Group>
+
       <Group justify="space-between" mb="lg">
         <Group gap="sm">
           <IconUser size={28} stroke={1.5} />
@@ -73,10 +94,20 @@ export function CollectorListPage() {
         </Alert>
       )}
 
+      {actionError && (
+        <Alert color="red" mb="md" onClose={() => setActionError(null)} withCloseButton>
+          {actionError}
+        </Alert>
+      )}
+
       {loading ? (
         <Group justify="center" py="xl">
           <Loader />
         </Group>
+      ) : collectors.length === 0 ? (
+        <Paper withBorder p="xl" ta="center" radius="md">
+          <Text c="dimmed">暂无采集者</Text>
+        </Paper>
       ) : (
         <Table striped highlightOnHover withTableBorder>
           <Table.Thead>

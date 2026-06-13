@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   ActionIcon,
   Alert,
+  Anchor,
   Badge,
   Button,
   Container,
@@ -60,6 +61,12 @@ export function DeviceListPage() {
 
   return (
     <Container size="lg" py="xl">
+      <Group justify="flex-end" mb="md">
+        <Anchor component={Link} to="/collectors" inline c="dimmed">
+          采集者档案
+        </Anchor>
+      </Group>
+
       <Group justify="space-between" mb="lg">
         <Group gap="sm">
           <IconVolume size={28} stroke={1.5} />

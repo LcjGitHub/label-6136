@@ -28,6 +28,11 @@ export function CollectorDetailPage() {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<CollectorInput | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    document.title = '采集者档案';
+  }, []);
 
   useEffect(() => {
     if (id) {
@@ -49,19 +54,39 @@ export function CollectorDetailPage() {
   const handleSave = async () => {
     if (!form || !id) return;
     setSubmitting(true);
+    setActionError(null);
     try {
       await update(Number(id), form);
       setEditing(false);
+    } catch {
+      setActionError('保存失败，请稍后重试');
     } finally {
       setSubmitting(false);
     }
   };
 
+  const handleCancel = () => {
+    if (current) {
+      setForm({
+        name: current.name,
+        contact: current.contact,
+        remark: current.remark,
+      });
+    }
+    setEditing(false);
+    setActionError(null);
+  };
+
   const handleDelete = async () => {
     if (!current) return;
     if (window.confirm(`确定删除「${current.name}」？`)) {
-      await remove(current.id);
-      navigate('/collectors');
+      setActionError(null);
+      try {
+        await remove(current.id);
+        navigate('/collectors');
+      } catch {
+        setActionError('删除失败，请稍后重试');
+      }
     }
   };
 
@@ -86,12 +111,23 @@ export function CollectorDetailPage() {
 
   return (
     <Container size="md" py="xl">
-      <Anchor component={Link} to="/collectors" mb="lg" inline>
-        <Group gap={4}>
-          <IconArrowLeft size={16} />
-          <span>返回列表</span>
-        </Group>
-      </Anchor>
+      <Group justify="space-between" mb="lg">
+        <Anchor component={Link} to="/collectors" inline>
+          <Group gap={4}>
+            <IconArrowLeft size={16} />
+            <span>返回列表</span>
+          </Group>
+        </Anchor>
+        <Anchor component={Link} to="/" inline c="dimmed">
+          样本列表
+        </Anchor>
+      </Group>
+
+      {actionError && (
+        <Alert color="red" mb="md" onClose={() => setActionError(null)} withCloseButton>
+          {actionError}
+        </Alert>
+      )}
 
       <Group justify="space-between" mb="lg">
         <Title order={2}>{current.name}</Title>
@@ -150,7 +186,7 @@ export function CollectorDetailPage() {
             >
               保存
             </Button>
-            <Button variant="default" onClick={() => setEditing(false)}>
+            <Button variant="default" onClick={handleCancel}>
               取消
             </Button>
           </>
