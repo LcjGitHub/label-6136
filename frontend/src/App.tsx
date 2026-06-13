@@ -5,6 +5,9 @@ import { CollectorListPage } from './pages/CollectorListPage';
 import { CollectorDetailPage } from './pages/CollectorDetailPage';
 import { KeyTypeListPage } from './pages/KeyTypeListPage';
 
+/**
+ * 应用路由
+ */
 export function App() {
   return (
     <BrowserRouter>

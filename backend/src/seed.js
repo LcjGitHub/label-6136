@@ -116,7 +116,7 @@ function seedKeyTypes() {
     },
     {
       name: '橡胶穹顶键',
-      description: '橡胶 dome 结构提供回弹，触感偏软，声音闷响',
+      description: '橡胶穹顶结构提供回弹，触感偏软，声音闷响',
     },
   ];
 

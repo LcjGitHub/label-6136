@@ -12,6 +12,9 @@ interface KeyTypeState {
   remove: (id: number) => Promise<void>;
 }
 
+/**
+ * 按键类型数据全局状态
+ */
 export const useKeyTypeStore = create<KeyTypeState>((set) => ({
   keyTypes: [],
   loading: false,

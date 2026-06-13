@@ -26,6 +26,33 @@ const emptyForm: KeyTypeInput = {
   description: '',
 };
 
+/**
+ * 从 axios 错误中提取后端返回的中文错误消息
+ */
+function extractErrorMessage(err: unknown): string {
+  if (
+    err &&
+    typeof err === 'object' &&
+    'response' in err &&
+    err.response &&
+    typeof err.response === 'object' &&
+    'data' in err.response &&
+    err.response.data &&
+    typeof err.response.data === 'object' &&
+    'error' in err.response.data &&
+    typeof (err.response.data as { error: unknown }).error === 'string'
+  ) {
+    return (err.response.data as { error: string }).error;
+  }
+  if (err instanceof Error) {
+    return err.message;
+  }
+  return '操作失败，请稍后重试';
+}
+
+/**
+ * 按键类型列表页：展示全部类型，支持新增、编辑与删除
+ */
 export function KeyTypeListPage() {
   const { keyTypes, loading, error, fetchAll, create, update, remove } = useKeyTypeStore();
   const [modalOpen, setModalOpen] = useState(false);
@@ -68,8 +95,7 @@ export function KeyTypeListPage() {
       }
       setModalOpen(false);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : '操作失败，请稍后重试';
-      setActionError(msg);
+      setActionError(extractErrorMessage(err));
     } finally {
       setSubmitting(false);
     }
@@ -80,8 +106,8 @@ export function KeyTypeListPage() {
       setActionError(null);
       try {
         await remove(id);
-      } catch {
-        setActionError('删除失败，请稍后重试');
+      } catch (err: unknown) {
+        setActionError(extractErrorMessage(err));
       }
     }
   };
