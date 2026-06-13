@@ -187,7 +187,7 @@ export function DeviceListPage() {
         if (item.sound_rating !== undefined && item.sound_rating !== null) {
           const rating = Number(item.sound_rating);
           if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-            throw new Error(`第 ${i + 1} 条数据的「sound_rating」必须是 1-5 的整数`);
+            throw new Error(`第 ${i + 1} 条数据的「音质评分」必须是 1-5 的整数`);
           }
         }
       }
@@ -398,22 +398,26 @@ export function DeviceListPage() {
                 </Table.Td>
                 <Table.Td>{device.key_type}</Table.Td>
                 <Table.Td>
-                  {device.sound_rating ? (
-                    <Group gap={2}>
-                      {[1, 2, 3, 4, 5].map((value) =>
-                        device.sound_rating >= value ? (
-                          <IconStarFilled key={value} size={14} color="#fbbf24" fill="#fbbf24" />
-                        ) : (
-                          <IconStar key={value} size={14} color="#d1d5db" />
-                        )
-                      )}
-                      <Text size="xs" c="dimmed" ml={4}>
-                        {device.sound_rating}
-                      </Text>
-                    </Group>
-                  ) : (
-                    <Text size="sm" c="dimmed">—</Text>
-                  )}
+                  {(() => {
+                    const rating = device.sound_rating;
+                    if (rating == null) {
+                      return <Text size="sm" c="dimmed">—</Text>;
+                    }
+                    return (
+                      <Group gap={2}>
+                        {[1, 2, 3, 4, 5].map((value) =>
+                          rating >= value ? (
+                            <IconStarFilled key={value} size={14} color="#fbbf24" fill="#fbbf24" />
+                          ) : (
+                            <IconStar key={value} size={14} color="#d1d5db" />
+                          )
+                        )}
+                        <Text size="xs" c="dimmed" ml={4}>
+                          {rating}
+                        </Text>
+                      </Group>
+                    );
+                  })()}
                 </Table.Td>
                 <Table.Td>
                   {(device.tags || []).length > 0 ? (

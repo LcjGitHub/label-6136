@@ -53,6 +53,7 @@ interface CompareFields {
   era: string;
   key_type: string;
   sound_description: string;
+  sound_rating: number | null;
   location: string;
 }
 
@@ -61,6 +62,7 @@ const fieldLabels: Record<keyof CompareFields, string> = {
   era: '年代',
   key_type: '按键类型',
   sound_description: '声音描述',
+  sound_rating: '音质评分',
   location: '获取地点',
 };
 
@@ -75,7 +77,7 @@ function DeviceCard({
   title: string;
   color: 'blue' | 'violet';
 }) {
-  const fields: (keyof CompareFields)[] = ['brand_model', 'era', 'key_type', 'sound_description', 'location'];
+  const fields: (keyof CompareFields)[] = ['brand_model', 'era', 'key_type', 'sound_description', 'sound_rating', 'location'];
 
   return (
     <Paper withBorder p="lg" radius="md" h="100%">
@@ -106,6 +108,27 @@ function DeviceCard({
                 </div>
               ) : field === 'sound_description' ? (
                 <Text style={{ whiteSpace: 'pre-wrap', ...valueStyle }}>{device[field]}</Text>
+              ) : field === 'sound_rating' ? (
+                <div style={valueStyle}>
+                  <Group gap={2}>
+                    {[1, 2, 3, 4, 5].map((value) =>
+                      device.sound_rating && device.sound_rating >= value ? (
+                        <IconStarFilled key={value} size={16} color="#fbbf24" fill="#fbbf24" />
+                      ) : (
+                        <IconStar key={value} size={16} color="#d1d5db" />
+                      )
+                    )}
+                    {device.sound_rating ? (
+                      <Text size="sm" c="dimmed" ml={4}>
+                        {device.sound_rating} 分
+                      </Text>
+                    ) : (
+                      <Text size="sm" c="dimmed">
+                        暂无评分
+                      </Text>
+                    )}
+                  </Group>
+                </div>
               ) : (
                 <Text style={valueStyle}>{device[field]}</Text>
               )}

@@ -130,7 +130,7 @@ router.post('/restore', (req, res) => {
       const rating = validateSoundRating(item.sound_rating);
       if (rating === false) {
         return res.status(400).json({
-          error: `第 ${i + 1} 条数据的「sound_rating」必须是 1-5 的整数`,
+          error: `第 ${i + 1} 条数据的「音质评分」必须是 1-5 的整数`,
         });
       }
     }
