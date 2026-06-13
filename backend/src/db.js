@@ -117,6 +117,26 @@ async function initDb() {
       updated_at TEXT DEFAULT (datetime('now'))
     )
   `);
+
+  exec(`
+    CREATE TABLE IF NOT EXISTS tags (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
+
+  exec(`
+    CREATE TABLE IF NOT EXISTS device_tags (
+      device_id INTEGER NOT NULL,
+      tag_id INTEGER NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      PRIMARY KEY (device_id, tag_id),
+      FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE,
+      FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+    )
+  `);
 }
 
 module.exports = { initDb, all, get, run, exec };

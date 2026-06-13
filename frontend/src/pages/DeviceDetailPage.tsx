@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
+  ActionIcon,
   Alert,
   Anchor,
   Autocomplete,
@@ -10,16 +11,20 @@ import {
   Group,
   Loader,
   Paper,
+  Select,
   Stack,
   Text,
   TextInput,
   Textarea,
   Title,
 } from '@mantine/core';
-import { IconArrowLeft, IconDeviceFloppy, IconTrash } from '@tabler/icons-react';
+import { IconArrowLeft, IconDeviceFloppy, IconPlus, IconTrash, IconX } from '@tabler/icons-react';
 import { useDeviceStore } from '../store/deviceStore';
 import { useKeyTypeStore } from '../store/keyTypeStore';
+import { useTagStore } from '../store/tagStore';
+import * as tagApi from '../api/tags';
 import type { DeviceInput } from '../types/device';
+import type { Tag } from '../types/tag';
 
 /**
  * 设备详情页：查看与编辑单条样本
@@ -29,19 +34,22 @@ export function DeviceDetailPage() {
   const navigate = useNavigate();
   const { current, loading, error, fetchOne, update, remove, clearCurrent } = useDeviceStore();
   const { keyTypes, fetchAll: fetchKeyTypes } = useKeyTypeStore();
+  const { tags: allTags, fetchAll: fetchAllTags } = useTagStore();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<DeviceInput | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deviceTags, setDeviceTags] = useState<Tag[]>([]);
+  const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
+  const [tagActionError, setTagActionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
       fetchOne(Number(id));
     }
     fetchKeyTypes();
+    fetchAllTags();
     return () => clearCurrent();
-  }, [id, fetchOne, fetchKeyTypes, clearCurrent]);
-
-  const keyTypeOptions = keyTypes.map((k) => k.name);
+  }, [id, fetchOne, fetchKeyTypes, fetchAllTags, clearCurrent]);
 
   useEffect(() => {
     if (current) {
@@ -52,6 +60,7 @@ export function DeviceDetailPage() {
         sound_description: current.sound_description,
         location: current.location,
       });
+      setDeviceTags(current.tags || []);
     }
   }, [current]);
 
@@ -71,6 +80,40 @@ export function DeviceDetailPage() {
     if (window.confirm(`确定删除「${current.brand_model}」？`)) {
       await remove(current.id);
       navigate('/');
+    }
+  };
+
+  const keyTypeOptions = keyTypes.map((k) => k.name);
+
+  const availableTags = allTags.filter(
+    (t) => !deviceTags.some((dt) => dt.id === t.id)
+  );
+
+  const tagSelectData = availableTags.map((t) => ({
+    value: String(t.id),
+    label: t.name,
+  }));
+
+  const handleBindTag = async () => {
+    if (!id || !selectedTagId) return;
+    setTagActionError(null);
+    try {
+      const updated = await tagApi.bindDeviceTag(Number(id), Number(selectedTagId));
+      setDeviceTags(updated);
+      setSelectedTagId(null);
+    } catch {
+      setTagActionError('绑定标签失败');
+    }
+  };
+
+  const handleUnbindTag = async (tagId: number) => {
+    if (!id) return;
+    setTagActionError(null);
+    try {
+      const updated = await tagApi.unbindDeviceTag(Number(id), tagId);
+      setDeviceTags(updated);
+    } catch {
+      setTagActionError('解除标签失败');
     }
   };
 
@@ -170,6 +213,63 @@ export function DeviceDetailPage() {
               创建于 {current.created_at} · 更新于 {current.updated_at}
             </Text>
           </Stack>
+        )}
+      </Paper>
+
+      <Paper withBorder p="lg" radius="md" mt="lg">
+        <Text fw={500} mb="sm">标签</Text>
+        {tagActionError && (
+          <Alert color="red" mb="sm" onClose={() => setTagActionError(null)} withCloseButton>
+            {tagActionError}
+          </Alert>
+        )}
+        <Group gap="xs" mb="sm">
+          {deviceTags.length > 0 ? (
+            deviceTags.map((tag) => (
+              <Badge
+                key={tag.id}
+                variant="light"
+                color="grape"
+                rightSection={
+                  <ActionIcon
+                    size="xs"
+                    color="grape"
+                    variant="transparent"
+                    onClick={() => handleUnbindTag(tag.id)}
+                    aria-label="移除标签"
+                  >
+                    <IconX size={10} />
+                  </ActionIcon>
+                }
+              >
+                {tag.name}
+              </Badge>
+            ))
+          ) : (
+            <Text size="sm" c="dimmed">暂无标签</Text>
+          )}
+        </Group>
+        {availableTags.length > 0 && (
+          <Group gap="xs">
+            <Select
+              placeholder="选择标签"
+              data={tagSelectData}
+              value={selectedTagId}
+              onChange={setSelectedTagId}
+              searchable
+              clearable
+              w={200}
+            />
+            <Button
+              size="xs"
+              variant="light"
+              leftSection={<IconPlus size={14} />}
+              disabled={!selectedTagId}
+              onClick={handleBindTag}
+            >
+              添加标签
+            </Button>
+          </Group>
         )}
       </Paper>
 

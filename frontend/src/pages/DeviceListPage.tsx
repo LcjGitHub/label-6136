@@ -224,6 +224,9 @@ export function DeviceListPage() {
         <Anchor component={Link} to="/key-types" inline c="dimmed">
           按键类型词典
         </Anchor>
+        <Anchor component={Link} to="/tags" inline c="dimmed">
+          标签管理
+        </Anchor>
         <Anchor component={Link} to="/collectors" inline c="dimmed">
           采集者档案
         </Anchor>
@@ -294,13 +297,14 @@ export function DeviceListPage() {
               <Table.Th>品牌型号</Table.Th>
               <Table.Th>年代</Table.Th>
               <Table.Th>按键类型</Table.Th>
+              <Table.Th>标签</Table.Th>
               <Table.Th>获取地点</Table.Th>
               <Table.Th w={80}>操作</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
             <Table.Tr>
-              <Table.Td colSpan={5} ta="center" py="xl">
+              <Table.Td colSpan={6} ta="center" py="xl">
                 <Text c="dimmed">暂无样本数据</Text>
               </Table.Td>
             </Table.Tr>
@@ -313,6 +317,7 @@ export function DeviceListPage() {
               <Table.Th>品牌型号</Table.Th>
               <Table.Th>年代</Table.Th>
               <Table.Th>按键类型</Table.Th>
+              <Table.Th>标签</Table.Th>
               <Table.Th>获取地点</Table.Th>
               <Table.Th w={80}>操作</Table.Th>
             </Table.Tr>
@@ -329,6 +334,15 @@ export function DeviceListPage() {
                   <Badge variant="light">{device.era}</Badge>
                 </Table.Td>
                 <Table.Td>{device.key_type}</Table.Td>
+                <Table.Td>
+                  <Group gap={4}>
+                    {(device.tags || []).map((tag) => (
+                      <Badge key={tag.id} variant="light" color="grape" size="sm">
+                        {tag.name}
+                      </Badge>
+                    ))}
+                  </Group>
+                </Table.Td>
                 <Table.Td>{device.location}</Table.Td>
                 <Table.Td>
                   <ActionIcon

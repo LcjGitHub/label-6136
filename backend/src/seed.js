@@ -132,12 +132,39 @@ function seedKeyTypes() {
 }
 
 /**
+ * 初始化标签 seed 数据
+ */
+function seedTags() {
+  const count = db.get('SELECT COUNT(*) AS cnt FROM tags');
+  if (count && count.cnt > 0) {
+    return;
+  }
+
+  const tags = [
+    { name: '清脆' },
+    { name: '沉闷' },
+    { name: '机械感' },
+  ];
+
+  for (const row of tags) {
+    db.run(
+      `INSERT INTO tags (name)
+       VALUES (?)`,
+      [row.name]
+    );
+  }
+
+  console.log(`已写入 ${tags.length} 条标签 seed 数据`);
+}
+
+/**
  * 执行全部 seed 初始化
  */
 function seed() {
   seedDevices();
   seedCollectors();
   seedKeyTypes();
+  seedTags();
 }
 
 module.exports = { seed };

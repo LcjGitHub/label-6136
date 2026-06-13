@@ -14,21 +14,14 @@ import {
   Table,
   Text,
   TextInput,
-  Textarea,
   Title,
 } from '@mantine/core';
-import { IconEdit, IconPlus, IconTag, IconTrash } from '@tabler/icons-react';
-import { useKeyTypeStore } from '../store/keyTypeStore';
-import type { KeyTypeInput } from '../types/keyType';
+import { IconEdit, IconPlus, IconTags, IconTrash } from '@tabler/icons-react';
+import { useTagStore } from '../store/tagStore';
+import type { TagInput } from '../types/tag';
 
-const emptyForm: KeyTypeInput = {
-  name: '',
-  description: '',
-};
+const emptyForm: TagInput = { name: '' };
 
-/**
- * 从 axios 错误中提取后端返回的中文错误消息
- */
 function extractErrorMessage(err: unknown): string {
   if (
     err &&
@@ -50,19 +43,16 @@ function extractErrorMessage(err: unknown): string {
   return '操作失败，请稍后重试';
 }
 
-/**
- * 按键类型列表页：展示全部类型，支持新增、编辑与删除
- */
-export function KeyTypeListPage() {
-  const { keyTypes, loading, error, fetchAll, create, update, remove } = useKeyTypeStore();
+export function TagListPage() {
+  const { tags, loading, error, fetchAll, create, update, remove } = useTagStore();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [form, setForm] = useState<KeyTypeInput>(emptyForm);
+  const [form, setForm] = useState<TagInput>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
-    document.title = '按键类型词典';
+    document.title = '标签管理';
   }, []);
 
   useEffect(() => {
@@ -76,9 +66,9 @@ export function KeyTypeListPage() {
     setModalOpen(true);
   };
 
-  const handleOpenEdit = (item: { id: number; name: string; description: string }) => {
+  const handleOpenEdit = (item: { id: number; name: string }) => {
     setEditingId(item.id);
-    setForm({ name: item.name, description: item.description });
+    setForm({ name: item.name });
     setActionError(null);
     setModalOpen(true);
   };
@@ -102,7 +92,7 @@ export function KeyTypeListPage() {
   };
 
   const handleDelete = async (id: number, name: string) => {
-    if (window.confirm(`确定删除按键类型「${name}」？`)) {
+    if (window.confirm(`确定删除标签「${name}」？删除后关联的样本绑定也将解除。`)) {
       setActionError(null);
       try {
         await remove(id);
@@ -118,21 +108,21 @@ export function KeyTypeListPage() {
         <Anchor component={Link} to="/" inline c="dimmed">
           样本列表
         </Anchor>
-        <Anchor component={Link} to="/tags" inline c="dimmed">
-          标签管理
-        </Anchor>
         <Anchor component={Link} to="/collectors" inline c="dimmed">
           采集者档案
+        </Anchor>
+        <Anchor component={Link} to="/key-types" inline c="dimmed">
+          按键类型词典
         </Anchor>
       </Group>
 
       <Group justify="space-between" mb="lg">
         <Group gap="sm">
-          <IconTag size={28} stroke={1.5} />
-          <Title order={2}>按键类型词典</Title>
+          <IconTags size={28} stroke={1.5} />
+          <Title order={2}>标签管理</Title>
         </Group>
         <Button leftSection={<IconPlus size={16} />} onClick={handleOpenCreate}>
-          新增类型
+          新增标签
         </Button>
       </Group>
 
@@ -152,26 +142,28 @@ export function KeyTypeListPage() {
         <Group justify="center" py="xl">
           <Loader />
         </Group>
-      ) : keyTypes.length === 0 ? (
+      ) : tags.length === 0 ? (
         <Paper withBorder p="xl" ta="center" radius="md">
-          <Text c="dimmed">暂无按键类型</Text>
+          <Text c="dimmed">暂无标签</Text>
         </Paper>
       ) : (
         <Table striped highlightOnHover withTableBorder>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th w={200}>类型名称</Table.Th>
-              <Table.Th>简短说明</Table.Th>
+              <Table.Th w={200}>标签名称</Table.Th>
+              <Table.Th>创建时间</Table.Th>
               <Table.Th w={120}>操作</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {keyTypes.map((item) => (
+            {tags.map((item) => (
               <Table.Tr key={item.id}>
                 <Table.Td>
                   <Text fw={500}>{item.name}</Text>
                 </Table.Td>
-                <Table.Td>{item.description || <Text c="dimmed">—</Text>}</Table.Td>
+                <Table.Td>
+                  <Text size="sm" c="dimmed">{item.created_at}</Text>
+                </Table.Td>
                 <Table.Td>
                   <Group gap="xs">
                     <ActionIcon
@@ -201,23 +193,16 @@ export function KeyTypeListPage() {
       <Modal
         opened={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editingId !== null ? '编辑按键类型' : '新增按键类型'}
+        title={editingId !== null ? '编辑标签' : '新增标签'}
         size="md"
       >
         <Stack gap="sm">
           <TextInput
-            label="类型名称"
+            label="标签名称"
             required
-            placeholder="如：机械杠杆键"
+            placeholder="如：清脆、沉闷、机械感"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.currentTarget.value })}
-          />
-          <Textarea
-            label="简短说明"
-            minRows={3}
-            placeholder="描述该按键类型的特点"
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.currentTarget.value })}
           />
           <Group justify="flex-end" mt="md">
             <Button variant="default" onClick={() => setModalOpen(false)}>

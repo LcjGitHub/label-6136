@@ -4,11 +4,28 @@ const db = require('../db');
 const router = express.Router();
 
 /**
+ * 获取设备关联的标签
+ */
+function getTagsForDevice(deviceId) {
+  return db.all(
+    `SELECT t.* FROM tags t
+     INNER JOIN device_tags dt ON t.id = dt.tag_id
+     WHERE dt.device_id = ?
+     ORDER BY t.id ASC`,
+    [deviceId]
+  );
+}
+
+/**
  * 获取全部设备列表
  */
 router.get('/', (_req, res) => {
   const rows = db.all('SELECT * FROM devices ORDER BY id ASC');
-  res.json(rows);
+  const devicesWithTags = rows.map((device) => ({
+    ...device,
+    tags: getTagsForDevice(device.id),
+  }));
+  res.json(devicesWithTags);
 });
 
 /**
@@ -142,7 +159,11 @@ router.get('/:id', (req, res) => {
   if (!row) {
     return res.status(404).json({ error: '设备不存在' });
   }
-  res.json(row);
+  const deviceWithTags = {
+    ...row,
+    tags: getTagsForDevice(row.id),
+  };
+  res.json(deviceWithTags);
 });
 
 /**

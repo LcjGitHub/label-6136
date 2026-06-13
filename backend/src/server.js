@@ -5,6 +5,7 @@ const { seed } = require('./seed');
 const devicesRouter = require('./routes/devices');
 const collectorsRouter = require('./routes/collectors');
 const keyTypesRouter = require('./routes/keyTypes');
+const tagsRouter = require('./routes/tags');
 
 const PORT = 8000;
 
@@ -21,6 +22,7 @@ async function start() {
   app.use('/api/devices', devicesRouter);
   app.use('/api/collectors', collectorsRouter);
   app.use('/api/key-types', keyTypesRouter);
+  app.use('/api/tags', tagsRouter);
 
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' });

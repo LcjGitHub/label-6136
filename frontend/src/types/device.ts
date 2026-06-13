@@ -1,6 +1,5 @@
-/**
- * 收银机设备记录
- */
+import type { Tag } from './tag';
+
 export interface Device {
   id: number;
   brand_model: string;
@@ -8,11 +7,9 @@ export interface Device {
   key_type: string;
   sound_description: string;
   location: string;
+  tags: Tag[];
   created_at: string;
   updated_at: string;
 }
 
-/**
- * 创建设备时的请求体（不含 id 与时间戳）
- */
-export type DeviceInput = Omit<Device, 'id' | 'created_at' | 'updated_at'>;
+export type DeviceInput = Omit<Device, 'id' | 'tags' | 'created_at' | 'updated_at'>;

@@ -5,10 +5,8 @@ import { DeviceComparePage } from './pages/DeviceComparePage';
 import { CollectorListPage } from './pages/CollectorListPage';
 import { CollectorDetailPage } from './pages/CollectorDetailPage';
 import { KeyTypeListPage } from './pages/KeyTypeListPage';
+import { TagListPage } from './pages/TagListPage';
 
-/**
- * 应用路由
- */
 export function App() {
   return (
     <BrowserRouter>
@@ -19,6 +17,7 @@ export function App() {
         <Route path="/collectors" element={<CollectorListPage />} />
         <Route path="/collectors/:id" element={<CollectorDetailPage />} />
         <Route path="/key-types" element={<KeyTypeListPage />} />
+        <Route path="/tags" element={<TagListPage />} />
       </Routes>
     </BrowserRouter>
   );
