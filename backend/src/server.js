@@ -3,6 +3,7 @@ const cors = require('cors');
 const db = require('./db');
 const { seed } = require('./seed');
 const devicesRouter = require('./routes/devices');
+const collectorsRouter = require('./routes/collectors');
 
 const PORT = 8000;
 
@@ -17,6 +18,7 @@ async function start() {
   app.use(cors());
   app.use(express.json());
   app.use('/api/devices', devicesRouter);
+  app.use('/api/collectors', collectorsRouter);
 
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' });

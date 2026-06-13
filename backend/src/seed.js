@@ -1,9 +1,9 @@
 const db = require('./db');
 
 /**
- * 初始化 5 条收银机按键音样本 seed 数据
+ * 初始化收银机按键音样本 seed 数据
  */
-function seed() {
+function seedDevices() {
   const count = db.get('SELECT COUNT(*) AS cnt FROM devices');
   if (count && count.cnt > 0) {
     return;
@@ -55,7 +55,53 @@ function seed() {
     );
   }
 
-  console.log(`已写入 ${samples.length} 条 seed 数据`);
+  console.log(`已写入 ${samples.length} 条设备 seed 数据`);
+}
+
+/**
+ * 初始化采集者 seed 数据
+ */
+function seedCollectors() {
+  const count = db.get('SELECT COUNT(*) AS cnt FROM collectors');
+  if (count && count.cnt > 0) {
+    return;
+  }
+
+  const collectors = [
+    {
+      name: '张铭远',
+      contact: '13800138001',
+      remark: '专注于 1920-1950 年代美式收银机收藏，常驻上海',
+    },
+    {
+      name: '李思琪',
+      contact: 'siqi.li@example.com',
+      remark: '欧洲老式办公设备爱好者，多次赴意大利、德国淘货',
+    },
+    {
+      name: '王建国',
+      contact: '',
+      remark: '北京本地收藏家，主攻日式电子收银机',
+    },
+  ];
+
+  for (const row of collectors) {
+    db.run(
+      `INSERT INTO collectors (name, contact, remark)
+       VALUES (?, ?, ?)`,
+      [row.name, row.contact, row.remark]
+    );
+  }
+
+  console.log(`已写入 ${collectors.length} 条采集者 seed 数据`);
+}
+
+/**
+ * 执行全部 seed 初始化
+ */
+function seed() {
+  seedDevices();
+  seedCollectors();
 }
 
 module.exports = { seed };

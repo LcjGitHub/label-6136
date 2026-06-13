@@ -1,6 +1,8 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { DeviceListPage } from './pages/DeviceListPage';
 import { DeviceDetailPage } from './pages/DeviceDetailPage';
+import { CollectorListPage } from './pages/CollectorListPage';
+import { CollectorDetailPage } from './pages/CollectorDetailPage';
 
 /**
  * 应用路由
@@ -11,6 +13,8 @@ export function App() {
       <Routes>
         <Route path="/" element={<DeviceListPage />} />
         <Route path="/devices/:id" element={<DeviceDetailPage />} />
+        <Route path="/collectors" element={<CollectorListPage />} />
+        <Route path="/collectors/:id" element={<CollectorDetailPage />} />
       </Routes>
     </BrowserRouter>
   );
