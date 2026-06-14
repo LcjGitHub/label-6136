@@ -53,12 +53,14 @@ function extractErrorMessage(err: unknown): string {
 export function DeviceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { current, loading, copying, error, fetchOne, update, remove, clearCurrent, updateTags, copy } = useDeviceStore();
+  const { current, loading, error, fetchOne, create, update, remove, clearCurrent, updateTags } = useDeviceStore();
   const { keyTypes, fetchAll: fetchKeyTypes } = useKeyTypeStore();
   const { tags: allTags, fetchAll: fetchAllTags } = useTagStore();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<DeviceInput | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [copying, setCopying] = useState(false);
+  const [copyError, setCopyError] = useState<string | null>(null);
   const [deviceTags, setDeviceTags] = useState<Tag[]>([]);
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
   const [tagActionError, setTagActionError] = useState<string | null>(null);
@@ -108,11 +110,26 @@ export function DeviceDetailPage() {
 
   const handleCopy = async () => {
     if (!current) return;
+    setCopying(true);
+    setCopyError(null);
     try {
-      const created = await copy(current.id);
+      const suffix = '副本';
+      const brandModel = current.brand_model.endsWith(suffix)
+        ? current.brand_model
+        : current.brand_model + ' ' + suffix;
+      const created = await create({
+        brand_model: brandModel,
+        era: current.era,
+        key_type: current.key_type,
+        sound_description: current.sound_description,
+        location: current.location,
+        sound_rating: current.sound_rating ?? null,
+      });
       navigate(`/devices/${created.id}`);
     } catch (err: unknown) {
-      setTagActionError(extractErrorMessage(err));
+      setCopyError(extractErrorMessage(err));
+    } finally {
+      setCopying(false);
     }
   };
 
@@ -179,6 +196,12 @@ export function DeviceDetailPage() {
           <span>返回列表</span>
         </Group>
       </Anchor>
+
+      {copyError && (
+        <Alert color="red" mb="lg" onClose={() => setCopyError(null)} withCloseButton>
+          {copyError}
+        </Alert>
+      )}
 
       <Group justify="space-between" mb="lg">
         <Title order={2}>{current.brand_model}</Title>

@@ -8,7 +8,6 @@ interface DeviceState {
   devices: Device[];
   current: Device | null;
   loading: boolean;
-  copying: boolean;
   exporting: boolean;
   restoring: boolean;
   error: string | null;
@@ -20,7 +19,6 @@ interface DeviceState {
   fetchAll: (keyword?: string, page?: number, pageSize?: number) => Promise<void>;
   fetchOne: (id: number) => Promise<void>;
   create: (input: DeviceInput) => Promise<Device>;
-  copy: (id: number) => Promise<Device>;
   update: (id: number, input: DeviceInput) => Promise<Device>;
   remove: (id: number) => Promise<void>;
   updateTags: (id: number, tags: Tag[]) => void;
@@ -41,7 +39,6 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
   devices: [],
   current: null,
   loading: false,
-  copying: false,
   exporting: false,
   restoring: false,
   error: null,
@@ -88,18 +85,6 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
     const state = get();
     await state.fetchAll(state.searchKeyword, 1, state.pageSize);
     return created;
-  },
-
-  copy: async (id: number) => {
-    set({ copying: true, error: null });
-    try {
-      const created = await deviceApi.copyDevice(id);
-      const state = get();
-      await state.fetchAll(state.searchKeyword, 1, state.pageSize);
-      return created;
-    } finally {
-      set({ copying: false });
-    }
   },
 
   update: async (id: number, input: DeviceInput) => {
