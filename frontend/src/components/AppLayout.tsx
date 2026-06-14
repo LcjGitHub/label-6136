@@ -17,6 +17,7 @@ import {
   IconTags,
   IconUser,
   IconHome,
+  IconHistory,
 } from '@tabler/icons-react';
 
 interface PageTitleContextType {
@@ -49,6 +50,7 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'key-types', label: '按键类型词典', to: '/key-types', icon: <IconTag size={20} /> },
   { key: 'tags', label: '标签管理', to: '/tags', icon: <IconTags size={20} /> },
   { key: 'collectors', label: '采集者档案', to: '/collectors', icon: <IconUser size={20} /> },
+  { key: 'operation-logs', label: '操作日志', to: '/operation-logs', icon: <IconHistory size={20} /> },
 ];
 
 const DEFAULT_TITLES: Record<string, string> = {
@@ -59,6 +61,7 @@ const DEFAULT_TITLES: Record<string, string> = {
   '/collectors': '采集者档案',
   '/eras': '年代词典',
   '/collection-records': '采集记录',
+  '/operation-logs': '操作日志',
 };
 
 export function AppLayout() {

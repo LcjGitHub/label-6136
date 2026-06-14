@@ -10,6 +10,7 @@ import { EraListPage } from './pages/EraListPage';
 import { TagListPage } from './pages/TagListPage';
 import { CollectionRecordListPage } from './pages/CollectionRecordListPage';
 import { CollectionRecordDetailPage } from './pages/CollectionRecordDetailPage';
+import { OperationLogListPage } from './pages/OperationLogListPage';
 
 export function App() {
   return (
@@ -26,6 +27,7 @@ export function App() {
           <Route path="/key-types" element={<KeyTypeListPage />} />
           <Route path="/eras" element={<EraListPage />} />
           <Route path="/tags" element={<TagListPage />} />
+          <Route path="/operation-logs" element={<OperationLogListPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

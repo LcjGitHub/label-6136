@@ -1,7 +1,14 @@
 import { Link } from 'react-router-dom';
 import { Anchor, Group } from '@mantine/core';
 
-export type NavLinkKey = 'sample-list' | 'key-types' | 'eras' | 'tags' | 'collectors' | 'collection-records';
+export type NavLinkKey =
+  | 'sample-list'
+  | 'key-types'
+  | 'eras'
+  | 'tags'
+  | 'collectors'
+  | 'collection-records'
+  | 'operation-logs';
 
 interface NavLinkItem {
   key: NavLinkKey;
@@ -16,6 +23,7 @@ const NAV_LINKS: Record<NavLinkKey, NavLinkItem> = {
   'tags': { key: 'tags', label: '标签管理', to: '/tags' },
   'collectors': { key: 'collectors', label: '采集者档案', to: '/collectors' },
   'collection-records': { key: 'collection-records', label: '采集记录', to: '/collection-records' },
+  'operation-logs': { key: 'operation-logs', label: '操作日志', to: '/operation-logs' },
 };
 
 export interface TopNavLinksProps {

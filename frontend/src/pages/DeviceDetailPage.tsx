@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
+  Accordion,
   ActionIcon,
   Alert,
   Anchor,
@@ -18,19 +19,38 @@ import {
   Textarea,
   Title,
 } from '@mantine/core';
-import { IconArrowLeft, IconCopy, IconDeviceFloppy, IconPlus, IconStar, IconStarFilled, IconTrash, IconX } from '@tabler/icons-react';
+import {
+  IconArrowLeft,
+  IconCopy,
+  IconDeviceFloppy,
+  IconHistory,
+  IconPlus,
+  IconRefresh,
+  IconStar,
+  IconStarFilled,
+  IconTrash,
+  IconX,
+} from '@tabler/icons-react';
 import { useDeviceStore } from '../store/deviceStore';
 import { useKeyTypeStore } from '../store/keyTypeStore';
 import { useEraStore } from '../store/eraStore';
 import { useTagStore } from '../store/tagStore';
+import { useOperationLogStore } from '../store/operationLogStore';
 import * as tagApi from '../api/tags';
 import { extractErrorMessage } from '../utils/error';
 import type { DeviceInput } from '../types/device';
 import type { Tag } from '../types/tag';
+import type { OperationType } from '../types/operationLog';
 
 /**
  * 设备详情页：查看与编辑单条样本，支持标签绑定与解除
  */
+const OPERATION_TYPE_META: Record<OperationType, { label: string; color: string; icon: React.ReactNode }> = {
+  create: { label: '新增', color: 'green', icon: <IconPlus size={12} /> },
+  update: { label: '修改', color: 'blue', icon: <IconRefresh size={12} /> },
+  delete: { label: '删除', color: 'red', icon: <IconTrash size={12} /> },
+};
+
 export function DeviceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -38,6 +58,14 @@ export function DeviceDetailPage() {
   const { keyTypes, fetchAll: fetchKeyTypes } = useKeyTypeStore();
   const { eras, fetchAll: fetchEras } = useEraStore();
   const { tags: allTags, fetchAll: fetchAllTags } = useTagStore();
+  const {
+    sampleLogs,
+    sampleLogsLoading,
+    sampleLogsError,
+    fetchBySampleId,
+    clearSampleLogs,
+    clearSampleLogsError,
+  } = useOperationLogStore();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<DeviceInput | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -50,12 +78,16 @@ export function DeviceDetailPage() {
   useEffect(() => {
     if (id) {
       fetchOne(Number(id));
+      fetchBySampleId(Number(id));
     }
     fetchKeyTypes();
     fetchEras();
     fetchAllTags();
-    return () => clearCurrent();
-  }, [id, fetchOne, fetchKeyTypes, fetchEras, fetchAllTags, clearCurrent]);
+    return () => {
+      clearCurrent();
+      clearSampleLogs();
+    };
+  }, [id, fetchOne, fetchKeyTypes, fetchEras, fetchAllTags, clearCurrent, fetchBySampleId, clearSampleLogs]);
 
   useEffect(() => {
     if (current) {
@@ -78,6 +110,7 @@ export function DeviceDetailPage() {
     try {
       await update(Number(id), form);
       setEditing(false);
+      await fetchBySampleId(Number(id));
     } finally {
       setSubmitting(false);
     }
@@ -411,6 +444,70 @@ export function DeviceDetailPage() {
           </>
         )}
       </Group>
+
+      <Paper withBorder radius="md" mt="xl">
+        <Accordion variant="separated" chevronPosition="left">
+          <Accordion.Item value="operation-history">
+            <Accordion.Control>
+              <Group gap="sm">
+                <IconHistory size={18} />
+                <Text fw={500}>操作历史</Text>
+                <Badge size="sm" variant="light" color="gray">
+                  {sampleLogs.length} 条记录
+                </Badge>
+              </Group>
+            </Accordion.Control>
+            <Accordion.Panel>
+              {sampleLogsError && (
+                <Alert color="red" mb="md" onClose={clearSampleLogsError} withCloseButton>
+                  {sampleLogsError}
+                </Alert>
+              )}
+              {sampleLogsLoading ? (
+                <Group justify="center" py="md">
+                  <Loader size="sm" />
+                </Group>
+              ) : sampleLogs.length === 0 ? (
+                <Text c="dimmed" ta="center" py="md" size="sm">
+                  暂无操作记录
+                </Text>
+              ) : (
+                <Stack gap="xs">
+                  {sampleLogs.map((log) => {
+                    const meta = OPERATION_TYPE_META[log.operation_type];
+                    return (
+                      <Paper
+                        key={log.id}
+                        withBorder
+                        p="sm"
+                        radius="sm"
+                        bg={log.operation_type === 'delete' ? 'red.0' : undefined}
+                      >
+                        <Group justify="space-between" mb={4} align="flex-start">
+                          <Group gap="xs">
+                            <Badge color={meta.color} variant="light" leftSection={meta.icon}>
+                              {meta.label}
+                            </Badge>
+                            <Text size="sm" c="dimmed">
+                              编号 #{log.sample_id}
+                            </Text>
+                          </Group>
+                          <Text size="xs" c="dimmed">
+                            {log.created_at}
+                          </Text>
+                        </Group>
+                        <Text size="sm" lineClamp={3}>
+                          {log.change_summary || '无变更摘要'}
+                        </Text>
+                      </Paper>
+                    );
+                  })}
+                </Stack>
+              )}
+            </Accordion.Panel>
+          </Accordion.Item>
+        </Accordion>
+      </Paper>
     </Container>
   );
 }

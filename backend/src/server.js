@@ -9,6 +9,7 @@ const keyTypesRouter = require('./routes/keyTypes');
 const erasRouter = require('./routes/eras');
 const tagsRouter = require('./routes/tags');
 const collectionRecordsRouter = require('./routes/collectionRecords');
+const operationLogsRouter = require('./routes/operationLogs');
 
 const PORT = parseInt(process.env.PORT, 10) || 8000;
 const FRONTEND_DIST = process.env.FRONTEND_DIST || path.resolve(__dirname, '../../frontend/dist');
@@ -35,6 +36,7 @@ async function createApp(dbOptions = {}, runSeed = false) {
   app.use('/api/eras', erasRouter);
   app.use('/api/tags', tagsRouter);
   app.use('/api/collection-records', collectionRecordsRouter);
+  app.use('/api/operation-logs', operationLogsRouter);
 
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok' });

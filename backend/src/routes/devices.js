@@ -17,6 +17,50 @@ function getTagsForDevice(deviceId) {
 }
 
 /**
+ * 写入操作日志
+ */
+function writeOperationLog(operationType, sampleId, sampleBrandModel, changeSummary = '') {
+  db.run(
+    `INSERT INTO operation_logs (operation_type, sample_id, sample_brand_model, change_summary)
+     VALUES (?, ?, ?, ?)`,
+    [operationType, sampleId, sampleBrandModel, changeSummary]
+  );
+}
+
+/**
+ * 生成变更摘要：对比 old 和 new 对象，返回变化的字段描述
+ */
+function buildChangeSummary(oldObj, newObj) {
+  const fieldLabels = {
+    brand_model: '品牌型号',
+    era: '年代',
+    key_type: '按键类型',
+    sound_description: '声音描述',
+    location: '获取地点',
+    sound_rating: '音质评分',
+  };
+
+  const changes = [];
+  for (const key of Object.keys(fieldLabels)) {
+    const oldVal = oldObj?.[key];
+    const newVal = newObj?.[key];
+    const oldStr = oldVal === null || oldVal === undefined ? '(空)' : String(oldVal);
+    const newStr = newVal === null || newVal === undefined ? '(空)' : String(newVal);
+    if (oldStr !== newStr) {
+      const label = fieldLabels[key];
+      changes.push(`${label}: "${truncate(oldStr, 30)}" → "${truncate(newStr, 30)}"`);
+    }
+  }
+
+  return changes.length > 0 ? changes.join('；') : '无字段变更';
+}
+
+function truncate(str, maxLen) {
+  if (str.length <= maxLen) return str;
+  return str.slice(0, maxLen) + '…';
+}
+
+/**
  * 校验音质评分：必须是 1-5 的整数，或 null/undefined
  */
 function validateSoundRating(rating) {
@@ -274,6 +318,14 @@ router.post('/', (req, res) => {
   );
 
   const created = db.get('SELECT * FROM devices WHERE id = ?', [result.lastInsertRowid]);
+
+  const summaryParts = [];
+  summaryParts.push(`品牌型号: "${truncate(brand_model, 30)}"`);
+  summaryParts.push(`年代: "${era}"`);
+  summaryParts.push(`按键类型: "${key_type}"`);
+  if (rating) summaryParts.push(`音质评分: ${rating} 分`);
+  writeOperationLog('create', created.id, brand_model, summaryParts.join('；'));
+
   res.status(201).json(created);
 });
 
@@ -296,6 +348,9 @@ router.put('/:id', (req, res) => {
     return res.status(400).json({ error: '音质评分必须是 1-5 的整数' });
   }
 
+  const newData = { brand_model, era, key_type, sound_description, location, sound_rating: rating };
+  const changeSummary = buildChangeSummary(existing, newData);
+
   db.run(
     `UPDATE devices
      SET brand_model = ?, era = ?, key_type = ?, sound_description = ?, location = ?,
@@ -305,6 +360,9 @@ router.put('/:id', (req, res) => {
   );
 
   const updated = db.get('SELECT * FROM devices WHERE id = ?', [req.params.id]);
+
+  writeOperationLog('update', updated.id, updated.brand_model, changeSummary);
+
   res.json(updated);
 });
 
@@ -316,6 +374,12 @@ router.delete('/:id', (req, res) => {
   if (!existing) {
     return res.status(404).json({ error: '设备不存在' });
   }
+
+  const summaryParts = [];
+  summaryParts.push(`品牌型号: "${truncate(existing.brand_model, 30)}"`);
+  summaryParts.push(`年代: "${existing.era}"`);
+  summaryParts.push(`按键类型: "${existing.key_type}"`);
+  writeOperationLog('delete', existing.id, existing.brand_model, summaryParts.join('；'));
 
   db.run('DELETE FROM devices WHERE id = ?', [req.params.id]);
   res.json({ message: '已删除' });

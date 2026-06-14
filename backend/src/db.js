@@ -198,6 +198,19 @@ async function initDb(options = {}) {
       FOREIGN KEY (collector_id) REFERENCES collectors(id) ON DELETE CASCADE
     )
   `);
+
+  exec(`
+    CREATE TABLE IF NOT EXISTS operation_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      operation_type TEXT NOT NULL CHECK (operation_type IN ('create', 'update', 'delete')),
+      sample_id INTEGER NOT NULL,
+      sample_brand_model TEXT NOT NULL,
+      change_summary TEXT NOT NULL DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
+  exec('CREATE INDEX IF NOT EXISTS idx_operation_logs_created_at ON operation_logs(created_at DESC)');
+  exec('CREATE INDEX IF NOT EXISTS idx_operation_logs_sample_id ON operation_logs(sample_id)');
 }
 
 module.exports = { initDb, closeDb, all, get, run, exec };
