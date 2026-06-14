@@ -112,3 +112,12 @@ export async function compareDevices(id1: number, id2: number): Promise<CompareD
   });
   return data;
 }
+
+/**
+ * 复制设备（一键复制样本）
+ * 以指定设备为模板创建副本，品牌型号自动追加「副本」后缀，标签绑定关系同步复制
+ */
+export async function copyDevice(id: number): Promise<Device> {
+  const { data } = await api.post<Device>(`/devices/${id}/copy`);
+  return data;
+}

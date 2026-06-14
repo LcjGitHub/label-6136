@@ -18,7 +18,7 @@ import {
   Textarea,
   Title,
 } from '@mantine/core';
-import { IconArrowLeft, IconDeviceFloppy, IconPlus, IconStar, IconStarFilled, IconTrash, IconX } from '@tabler/icons-react';
+import { IconArrowLeft, IconCopy, IconDeviceFloppy, IconPlus, IconStar, IconStarFilled, IconTrash, IconX } from '@tabler/icons-react';
 import { useDeviceStore } from '../store/deviceStore';
 import { useKeyTypeStore } from '../store/keyTypeStore';
 import { useTagStore } from '../store/tagStore';
@@ -53,7 +53,7 @@ function extractErrorMessage(err: unknown): string {
 export function DeviceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { current, loading, error, fetchOne, update, remove, clearCurrent, updateTags } = useDeviceStore();
+  const { current, loading, copying, error, fetchOne, update, remove, clearCurrent, updateTags, copy } = useDeviceStore();
   const { keyTypes, fetchAll: fetchKeyTypes } = useKeyTypeStore();
   const { tags: allTags, fetchAll: fetchAllTags } = useTagStore();
   const [editing, setEditing] = useState(false);
@@ -103,6 +103,16 @@ export function DeviceDetailPage() {
     if (window.confirm(`确定删除「${current.brand_model}」？`)) {
       await remove(current.id);
       navigate('/');
+    }
+  };
+
+  const handleCopy = async () => {
+    if (!current) return;
+    try {
+      const created = await copy(current.id);
+      navigate(`/devices/${created.id}`);
+    } catch (err: unknown) {
+      setTagActionError(extractErrorMessage(err));
     }
   };
 
@@ -371,6 +381,14 @@ export function DeviceDetailPage() {
         ) : (
           <>
             <Button onClick={() => setEditing(true)}>编辑</Button>
+            <Button
+              variant="light"
+              leftSection={<IconCopy size={16} />}
+              loading={copying}
+              onClick={handleCopy}
+            >
+              复制
+            </Button>
             <Button
               color="red"
               variant="light"

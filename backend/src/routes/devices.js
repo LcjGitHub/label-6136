@@ -286,6 +286,58 @@ router.put('/:id', (req, res) => {
 });
 
 /**
+ * 复制设备（一键复制样本）
+ * 以指定 ID 的设备为模板创建副本：
+ *   - 所有字段复制，品牌型号后追加「副本」后缀
+ *   - 自动复制标签绑定关系
+ * 返回新创建的设备（含 tags）
+ */
+router.post('/:id/copy', (req, res) => {
+  const sourceId = req.params.id;
+  const source = db.get('SELECT * FROM devices WHERE id = ?', [sourceId]);
+  if (!source) {
+    return res.status(404).json({ error: '源设备不存在' });
+  }
+
+  const newBrandModel = source.brand_model + ' 副本';
+
+  const insertResult = db.run(
+    `INSERT INTO devices (brand_model, era, key_type, sound_description, location, sound_rating)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [
+      newBrandModel,
+      source.era,
+      source.key_type,
+      source.sound_description,
+      source.location,
+      source.sound_rating,
+    ]
+  );
+
+  const newId = insertResult.lastInsertRowid;
+
+  const sourceTags = db.all(
+    'SELECT tag_id FROM device_tags WHERE device_id = ?',
+    [sourceId]
+  );
+  if (sourceTags.length > 0) {
+    const placeholders = sourceTags.map(() => '(?, ?)').join(', ');
+    const values = sourceTags.flatMap((t) => [newId, t.tag_id]);
+    db.run(
+      `INSERT INTO device_tags (device_id, tag_id) VALUES ${placeholders}`,
+      values
+    );
+  }
+
+  const created = db.get('SELECT * FROM devices WHERE id = ?', [newId]);
+  const createdWithTags = {
+    ...created,
+    tags: getTagsForDevice(newId),
+  };
+  res.status(201).json(createdWithTags);
+});
+
+/**
  * 删除设备
  */
 router.delete('/:id', (req, res) => {
