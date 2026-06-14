@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import {
   ActionIcon,
   Alert,
-  Anchor,
   Button,
   Container,
   Group,
@@ -18,33 +17,11 @@ import {
 } from '@mantine/core';
 import { IconEdit, IconPlus, IconTags, IconTrash } from '@tabler/icons-react';
 import { useTagStore } from '../store/tagStore';
+import { extractErrorMessage } from '../utils/error';
+import { TopNavLinks } from '../components/TopNavLinks';
 import type { TagInput } from '../types/tag';
 
 const emptyForm: TagInput = { name: '' };
-
-/**
- * 从 axios 错误中提取后端返回的中文错误消息
- */
-function extractErrorMessage(err: unknown): string {
-  if (
-    err &&
-    typeof err === 'object' &&
-    'response' in err &&
-    err.response &&
-    typeof err.response === 'object' &&
-    'data' in err.response &&
-    err.response.data &&
-    typeof err.response.data === 'object' &&
-    'error' in err.response.data &&
-    typeof (err.response.data as { error: unknown }).error === 'string'
-  ) {
-    return (err.response.data as { error: string }).error;
-  }
-  if (err instanceof Error) {
-    return err.message;
-  }
-  return '操作失败，请稍后重试';
-}
 
 /**
  * 标签列表页：展示全部标签，支持新增、编辑与删除
@@ -110,17 +87,7 @@ export function TagListPage() {
 
   return (
     <Container size="lg" py="xl">
-      <Group justify="flex-end" mb="md">
-        <Anchor component={Link} to="/" inline c="dimmed">
-          样本列表
-        </Anchor>
-        <Anchor component={Link} to="/collectors" inline c="dimmed">
-          采集者档案
-        </Anchor>
-        <Anchor component={Link} to="/key-types" inline c="dimmed">
-          按键类型词典
-        </Anchor>
-      </Group>
+      <TopNavLinks links={['sample-list', 'collectors', 'key-types']} />
 
       <Group justify="space-between" mb="lg">
         <Group gap="sm">

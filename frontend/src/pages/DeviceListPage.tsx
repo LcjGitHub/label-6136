@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import {
   ActionIcon,
   Alert,
-  Anchor,
   Autocomplete,
   Badge,
   Button,
@@ -25,6 +24,8 @@ import {
 import { IconDownload, IconExchange, IconPlus, IconSearch, IconStar, IconStarFilled, IconTrash, IconUpload, IconVolume, IconX } from '@tabler/icons-react';
 import { useDeviceStore } from '../store/deviceStore';
 import { useKeyTypeStore } from '../store/keyTypeStore';
+import { extractErrorMessage } from '../utils/error';
+import { TopNavLinks } from '../components/TopNavLinks';
 import type { Device, DeviceInput } from '../types/device';
 
 const emptyForm: DeviceInput = {
@@ -35,27 +36,6 @@ const emptyForm: DeviceInput = {
   location: '',
   sound_rating: null,
 };
-
-function extractErrorMessage(err: unknown): string {
-  if (
-    err &&
-    typeof err === 'object' &&
-    'response' in err &&
-    err.response &&
-    typeof err.response === 'object' &&
-    'data' in err.response &&
-    err.response.data &&
-    typeof err.response.data === 'object' &&
-    'error' in err.response.data &&
-    typeof (err.response.data as { error: unknown }).error === 'string'
-  ) {
-    return (err.response.data as { error: string }).error;
-  }
-  if (err instanceof Error) {
-    return err.message;
-  }
-  return '操作失败，请稍后重试';
-}
 
 /**
  * 设备列表页：展示全部样本，支持新增、删除、导出备份与导入还原
@@ -255,17 +235,7 @@ export function DeviceListPage() {
 
   return (
     <Container size="lg" py="xl">
-      <Group justify="flex-end" mb="md">
-        <Anchor component={Link} to="/key-types" inline c="dimmed">
-          按键类型词典
-        </Anchor>
-        <Anchor component={Link} to="/tags" inline c="dimmed">
-          标签管理
-        </Anchor>
-        <Anchor component={Link} to="/collectors" inline c="dimmed">
-          采集者档案
-        </Anchor>
-      </Group>
+      <TopNavLinks links={['key-types', 'tags', 'collectors']} />
 
       <Group justify="space-between" mb="lg">
         <Group gap="sm">

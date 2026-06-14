@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import {
   ActionIcon,
   Alert,
-  Anchor,
   Button,
   Container,
   Group,
@@ -19,6 +18,8 @@ import {
 } from '@mantine/core';
 import { IconPlus, IconTrash, IconUser } from '@tabler/icons-react';
 import { useCollectorStore } from '../store/collectorStore';
+import { extractErrorMessage } from '../utils/error';
+import { TopNavLinks } from '../components/TopNavLinks';
 import type { CollectorInput } from '../types/collector';
 
 const emptyForm: CollectorInput = {
@@ -52,8 +53,8 @@ export function CollectorListPage() {
       await create(form);
       setForm(emptyForm);
       setModalOpen(false);
-    } catch {
-      setActionError('新增失败，请稍后重试');
+    } catch (err: unknown) {
+      setActionError(extractErrorMessage(err));
     } finally {
       setSubmitting(false);
     }
@@ -64,25 +65,15 @@ export function CollectorListPage() {
       setActionError(null);
       try {
         await remove(id);
-      } catch {
-        setActionError('删除失败，请稍后重试');
+      } catch (err: unknown) {
+        setActionError(extractErrorMessage(err));
       }
     }
   };
 
   return (
     <Container size="lg" py="xl">
-      <Group justify="flex-end" mb="md">
-        <Anchor component={Link} to="/" inline c="dimmed">
-          样本列表
-        </Anchor>
-        <Anchor component={Link} to="/key-types" inline c="dimmed">
-          按键类型词典
-        </Anchor>
-        <Anchor component={Link} to="/tags" inline c="dimmed">
-          标签管理
-        </Anchor>
-      </Group>
+      <TopNavLinks links={['sample-list', 'key-types', 'tags']} />
 
       <Group justify="space-between" mb="lg">
         <Group gap="sm">

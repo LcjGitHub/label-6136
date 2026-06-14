@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Alert,
-  Anchor,
   Badge,
   Container,
   Grid,
@@ -18,6 +17,8 @@ import {
 import { IconArrowLeft, IconExchange, IconStar, IconStarFilled } from '@tabler/icons-react';
 import { useDeviceStore } from '../store/deviceStore';
 import { compareDevices } from '../api/devices';
+import { extractErrorMessage } from '../utils/error';
+import { TopNavLinks } from '../components/TopNavLinks';
 import type { Device } from '../types/device';
 
 const DIFF_HIGHLIGHT_STYLE = {
@@ -26,27 +27,6 @@ const DIFF_HIGHLIGHT_STYLE = {
   borderRadius: '6px',
   border: '1px solid rgba(255, 152, 0, 0.4)',
 };
-
-function extractErrorMessage(err: unknown): string {
-  if (
-    err &&
-    typeof err === 'object' &&
-    'response' in err &&
-    err.response &&
-    typeof err.response === 'object' &&
-    'data' in err.response &&
-    err.response.data &&
-    typeof err.response.data === 'object' &&
-    'error' in err.response.data &&
-    typeof (err.response.data as { error: unknown }).error === 'string'
-  ) {
-    return (err.response.data as { error: string }).error;
-  }
-  if (err instanceof Error) {
-    return err.message;
-  }
-  return '操作失败，请稍后重试';
-}
 
 interface CompareFields {
   brand_model: string;
@@ -198,17 +178,7 @@ export function DeviceComparePage() {
 
   return (
     <Container size="xl" py="xl">
-      <Group justify="flex-end" mb="md">
-        <Anchor component={Link} to="/key-types" inline c="dimmed">
-          按键类型词典
-        </Anchor>
-        <Anchor component={Link} to="/tags" inline c="dimmed">
-          标签管理
-        </Anchor>
-        <Anchor component={Link} to="/collectors" inline c="dimmed">
-          采集者档案
-        </Anchor>
-      </Group>
+      <TopNavLinks links={['key-types', 'tags', 'collectors']} />
 
       <Anchor component={Link} to="/" mb="lg" inline>
         <Group gap={4}>

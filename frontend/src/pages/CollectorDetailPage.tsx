@@ -16,6 +16,8 @@ import {
 } from '@mantine/core';
 import { IconArrowLeft, IconDeviceFloppy, IconTrash } from '@tabler/icons-react';
 import { useCollectorStore } from '../store/collectorStore';
+import { extractErrorMessage } from '../utils/error';
+import { TopNavLinks } from '../components/TopNavLinks';
 import type { CollectorInput } from '../types/collector';
 
 /**
@@ -58,8 +60,8 @@ export function CollectorDetailPage() {
     try {
       await update(Number(id), form);
       setEditing(false);
-    } catch {
-      setActionError('保存失败，请稍后重试');
+    } catch (err: unknown) {
+      setActionError(extractErrorMessage(err));
     } finally {
       setSubmitting(false);
     }
@@ -84,8 +86,8 @@ export function CollectorDetailPage() {
       try {
         await remove(current.id);
         navigate('/collectors');
-      } catch {
-        setActionError('删除失败，请稍后重试');
+      } catch (err: unknown) {
+        setActionError(extractErrorMessage(err));
       }
     }
   };
@@ -119,15 +121,7 @@ export function CollectorDetailPage() {
           </Group>
         </Anchor>
         <Group gap="md">
-          <Anchor component={Link} to="/key-types" inline c="dimmed">
-            按键类型词典
-          </Anchor>
-          <Anchor component={Link} to="/tags" inline c="dimmed">
-            标签管理
-          </Anchor>
-          <Anchor component={Link} to="/" inline c="dimmed">
-            样本列表
-          </Anchor>
+          <TopNavLinks links={['key-types', 'tags', 'sample-list']} withWrapper={false} />
         </Group>
       </Group>
 

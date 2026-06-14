@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import {
   ActionIcon,
   Alert,
-  Anchor,
   Button,
   Container,
   Group,
@@ -19,36 +18,14 @@ import {
 } from '@mantine/core';
 import { IconEdit, IconPlus, IconTag, IconTrash } from '@tabler/icons-react';
 import { useKeyTypeStore } from '../store/keyTypeStore';
+import { extractErrorMessage } from '../utils/error';
+import { TopNavLinks } from '../components/TopNavLinks';
 import type { KeyTypeInput } from '../types/keyType';
 
 const emptyForm: KeyTypeInput = {
   name: '',
   description: '',
 };
-
-/**
- * 从 axios 错误中提取后端返回的中文错误消息
- */
-function extractErrorMessage(err: unknown): string {
-  if (
-    err &&
-    typeof err === 'object' &&
-    'response' in err &&
-    err.response &&
-    typeof err.response === 'object' &&
-    'data' in err.response &&
-    err.response.data &&
-    typeof err.response.data === 'object' &&
-    'error' in err.response.data &&
-    typeof (err.response.data as { error: unknown }).error === 'string'
-  ) {
-    return (err.response.data as { error: string }).error;
-  }
-  if (err instanceof Error) {
-    return err.message;
-  }
-  return '操作失败，请稍后重试';
-}
 
 /**
  * 按键类型列表页：展示全部类型，支持新增、编辑与删除
@@ -114,17 +91,7 @@ export function KeyTypeListPage() {
 
   return (
     <Container size="lg" py="xl">
-      <Group justify="flex-end" mb="md">
-        <Anchor component={Link} to="/" inline c="dimmed">
-          样本列表
-        </Anchor>
-        <Anchor component={Link} to="/tags" inline c="dimmed">
-          标签管理
-        </Anchor>
-        <Anchor component={Link} to="/collectors" inline c="dimmed">
-          采集者档案
-        </Anchor>
-      </Group>
+      <TopNavLinks links={['sample-list', 'tags', 'collectors']} />
 
       <Group justify="space-between" mb="lg">
         <Group gap="sm">
