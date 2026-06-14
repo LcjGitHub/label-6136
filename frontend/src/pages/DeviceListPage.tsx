@@ -85,6 +85,7 @@ export function DeviceListPage() {
     setPage,
     clearSuccess,
     clearError,
+    clearStatisticsError,
   } = useDeviceStore();
   const { keyTypes, fetchAll: fetchKeyTypes } = useKeyTypeStore();
   const [modalOpen, setModalOpen] = useState(false);
@@ -303,7 +304,7 @@ export function DeviceListPage() {
       </Group>
 
       {statisticsError && (
-        <Alert color="red" mb="md">
+        <Alert color="red" mb="md" onClose={clearStatisticsError} withCloseButton>
           {statisticsError}
         </Alert>
       )}

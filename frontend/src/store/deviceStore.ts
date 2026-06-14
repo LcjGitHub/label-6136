@@ -39,6 +39,7 @@ interface DeviceState {
   setPageSize: (pageSize: number) => void;
   clearSuccess: () => void;
   clearError: () => void;
+  clearStatisticsError: () => void;
 }
 
 /**
@@ -114,10 +115,12 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
 
   update: async (id: number, input: DeviceInput) => {
     const updated = await deviceApi.updateDevice(id, input);
-    set((state) => ({
-      devices: state.devices.map((d) => (d.id === id ? updated : d)),
-      current: state.current?.id === id ? updated : state.current,
+    const state = get();
+    set((s) => ({
+      devices: s.devices.map((d) => (d.id === id ? updated : d)),
+      current: s.current?.id === id ? updated : s.current,
     }));
+    await state.fetchStatistics();
     return updated;
   },
 
@@ -174,6 +177,7 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
 
   clearSuccess: () => set({ actionSuccess: null }),
   clearError: () => set({ error: null }),
+  clearStatisticsError: () => set({ statisticsError: null }),
   setSearchKeyword: (keyword: string) => set({ searchKeyword: keyword }),
   setPage: (page: number) => set({ page }),
   setPageSize: (pageSize: number) => set({ pageSize }),
