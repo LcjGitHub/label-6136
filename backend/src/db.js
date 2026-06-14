@@ -2,19 +2,21 @@ const initSqlJs = require('sql.js');
 const path = require('path');
 const fs = require('fs');
 
-const dataDir = path.join(__dirname, '..', 'data');
-const dbPath = path.join(dataDir, 'cashregister.db');
+const defaultDataDir = path.join(__dirname, '..', 'data');
+const defaultDbPath = path.join(defaultDataDir, 'cashregister.db');
 
 /** @type {import('sql.js').Database | null} */
 let db = null;
+let currentDbPath = defaultDbPath;
+let inMemoryMode = false;
 
 /**
- * 将内存数据库持久化到磁盘
+ * 将内存数据库持久化到磁盘（内存模式下不执行）
  */
 function persist() {
-  if (!db) return;
+  if (!db || inMemoryMode) return;
   const data = db.export();
-  fs.writeFileSync(dbPath, Buffer.from(data));
+  fs.writeFileSync(currentDbPath, Buffer.from(data));
 }
 
 /**
@@ -69,16 +71,45 @@ function exec(sql) {
 }
 
 /**
- * 初始化 SQLite 数据库
+ * 关闭当前数据库连接并清理状态
  */
-async function initDb() {
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+function closeDb() {
+  if (db) {
+    db.close();
+    db = null;
+  }
+  currentDbPath = defaultDbPath;
+  inMemoryMode = false;
+}
+
+/**
+ * 初始化 SQLite 数据库
+ * @param {Object} [options] 初始化选项
+ * @param {string} [options.dbPath] 自定义数据库文件路径
+ * @param {boolean} [options.inMemory] 是否使用内存模式（不持久化到磁盘）
+ */
+async function initDb(options = {}) {
+  const { dbPath: customDbPath, inMemory = false } = options;
+
+  closeDb();
+
+  inMemoryMode = inMemory;
+  if (customDbPath) {
+    currentDbPath = customDbPath;
+  } else {
+    currentDbPath = defaultDbPath;
+  }
+
+  if (!inMemoryMode) {
+    const dataDir = path.dirname(currentDbPath);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
   }
 
   const SQL = await initSqlJs();
-  if (fs.existsSync(dbPath)) {
-    const buffer = fs.readFileSync(dbPath);
+  if (!inMemoryMode && fs.existsSync(currentDbPath)) {
+    const buffer = fs.readFileSync(currentDbPath);
     db = new SQL.Database(buffer);
   } else {
     db = new SQL.Database();
@@ -145,4 +176,4 @@ async function initDb() {
   `);
 }
 
-module.exports = { initDb, all, get, run, exec };
+module.exports = { initDb, closeDb, all, get, run, exec };
