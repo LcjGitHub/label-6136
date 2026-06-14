@@ -6,6 +6,8 @@ import { CollectorListPage } from './pages/CollectorListPage';
 import { CollectorDetailPage } from './pages/CollectorDetailPage';
 import { KeyTypeListPage } from './pages/KeyTypeListPage';
 import { TagListPage } from './pages/TagListPage';
+import { CollectionRecordListPage } from './pages/CollectionRecordListPage';
+import { CollectionRecordDetailPage } from './pages/CollectionRecordDetailPage';
 
 export function App() {
   return (
@@ -16,6 +18,8 @@ export function App() {
         <Route path="/devices/:id" element={<DeviceDetailPage />} />
         <Route path="/collectors" element={<CollectorListPage />} />
         <Route path="/collectors/:id" element={<CollectorDetailPage />} />
+        <Route path="/collection-records" element={<CollectionRecordListPage />} />
+        <Route path="/collection-records/:id" element={<CollectionRecordDetailPage />} />
         <Route path="/key-types" element={<KeyTypeListPage />} />
         <Route path="/tags" element={<TagListPage />} />
       </Routes>

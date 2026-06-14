@@ -235,7 +235,7 @@ export function DeviceListPage() {
 
   return (
     <Container size="lg" py="xl">
-      <TopNavLinks links={['key-types', 'tags', 'collectors']} />
+      <TopNavLinks links={['key-types', 'tags', 'collectors', 'collection-records']} />
 
       <Group justify="space-between" mb="lg">
         <Group gap="sm">

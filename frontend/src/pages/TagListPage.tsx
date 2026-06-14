@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import {
   ActionIcon,
   Alert,
@@ -87,7 +86,7 @@ export function TagListPage() {
 
   return (
     <Container size="lg" py="xl">
-      <TopNavLinks links={['sample-list', 'collectors', 'key-types']} />
+      <TopNavLinks links={['sample-list', 'collectors', 'key-types', 'collection-records']} />
 
       <Group justify="space-between" mb="lg">
         <Group gap="sm">

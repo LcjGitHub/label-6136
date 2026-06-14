@@ -174,6 +174,20 @@ async function initDb(options = {}) {
       FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
     )
   `);
+
+  exec(`
+    CREATE TABLE IF NOT EXISTS collection_records (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      sample_id INTEGER NOT NULL,
+      collector_id INTEGER NOT NULL,
+      collection_date TEXT NOT NULL,
+      site_note TEXT NOT NULL DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (sample_id) REFERENCES devices(id) ON DELETE CASCADE,
+      FOREIGN KEY (collector_id) REFERENCES collectors(id) ON DELETE CASCADE
+    )
+  `);
 }
 
 module.exports = { initDb, closeDb, all, get, run, exec };

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Alert,
+  Anchor,
   Badge,
   Container,
   Grid,
@@ -178,7 +179,7 @@ export function DeviceComparePage() {
 
   return (
     <Container size="xl" py="xl">
-      <TopNavLinks links={['key-types', 'tags', 'collectors']} />
+      <TopNavLinks links={['key-types', 'tags', 'collectors', 'collection-records']} />
 
       <Anchor component={Link} to="/" mb="lg" inline>
         <Group gap={4}>
