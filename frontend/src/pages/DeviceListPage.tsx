@@ -24,6 +24,7 @@ import {
 import { IconDownload, IconExchange, IconPlus, IconSearch, IconStar, IconStarFilled, IconTrash, IconUpload, IconVolume, IconX } from '@tabler/icons-react';
 import { useDeviceStore } from '../store/deviceStore';
 import { useKeyTypeStore } from '../store/keyTypeStore';
+import { useEraStore } from '../store/eraStore';
 import { extractErrorMessage } from '../utils/error';
 import { TopNavLinks } from '../components/TopNavLinks';
 import type { Device, DeviceInput } from '../types/device';
@@ -68,6 +69,7 @@ export function DeviceListPage() {
     clearStatisticsError,
   } = useDeviceStore();
   const { keyTypes, fetchAll: fetchKeyTypes } = useKeyTypeStore();
+  const { eras, fetchAll: fetchEras } = useEraStore();
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<DeviceInput>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
@@ -80,8 +82,8 @@ export function DeviceListPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    Promise.all([fetchAll(), fetchKeyTypes(), fetchStatistics()]);
-  }, [fetchAll, fetchKeyTypes, fetchStatistics]);
+    Promise.all([fetchAll(), fetchKeyTypes(), fetchEras(), fetchStatistics()]);
+  }, [fetchAll, fetchKeyTypes, fetchEras, fetchStatistics]);
 
   useEffect(() => {
     if (actionSuccess) {
@@ -98,6 +100,7 @@ export function DeviceListPage() {
   }, [actionError]);
 
   const keyTypeOptions = keyTypes.map((k) => k.name);
+  const eraOptions = eras.map((e) => e.name);
 
   const handleCreate = async () => {
     setSubmitting(true);
@@ -235,7 +238,7 @@ export function DeviceListPage() {
 
   return (
     <Container size="lg" py="xl">
-      <TopNavLinks links={['key-types', 'tags', 'collectors', 'collection-records']} />
+      <TopNavLinks links={['key-types', 'eras', 'tags', 'collectors', 'collection-records']} />
 
       <Group justify="space-between" mb="lg">
         <Group gap="sm">
@@ -540,12 +543,13 @@ export function DeviceListPage() {
             value={form.brand_model}
             onChange={(e) => setForm({ ...form, brand_model: e.currentTarget.value })}
           />
-          <TextInput
+          <Autocomplete
             label="年代"
             required
-            placeholder="如：1980年代"
+            placeholder="选择或输入年代"
+            data={eraOptions}
             value={form.era}
-            onChange={(e) => setForm({ ...form, era: e.currentTarget.value })}
+            onChange={(value) => setForm({ ...form, era: value })}
           />
           <Autocomplete
             label="按键类型"

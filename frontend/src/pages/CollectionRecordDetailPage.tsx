@@ -144,7 +144,7 @@ export function CollectionRecordDetailPage() {
           </Group>
         </Anchor>
         <Group gap="md">
-          <TopNavLinks links={['sample-list', 'collectors', 'key-types', 'tags', 'collection-records']} withWrapper={false} />
+          <TopNavLinks links={['sample-list', 'collectors', 'key-types', 'eras', 'tags', 'collection-records']} withWrapper={false} />
         </Group>
       </Group>
 

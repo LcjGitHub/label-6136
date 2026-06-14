@@ -73,7 +73,7 @@ export function CollectorListPage() {
 
   return (
     <Container size="lg" py="xl">
-      <TopNavLinks links={['sample-list', 'key-types', 'tags', 'collection-records']} />
+      <TopNavLinks links={['sample-list', 'key-types', 'eras', 'tags', 'collection-records']} />
 
       <Group justify="space-between" mb="lg">
         <Group gap="sm">

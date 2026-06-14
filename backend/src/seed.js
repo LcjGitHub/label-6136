@@ -137,6 +137,53 @@ function seedKeyTypes() {
 }
 
 /**
+ * 初始化年代词典 seed 数据
+ */
+function seedEras() {
+  const count = db.get('SELECT COUNT(*) AS cnt FROM eras');
+  if (count && count.cnt > 0) {
+    return;
+  }
+
+  const eras = [
+    {
+      name: '1920年代',
+      description: '早期机械收银机的黄金时代，全金属结构，机械杠杆传动',
+    },
+    {
+      name: '1950年代',
+      description: '战后经济繁荣期，美式大型收银机普及，机械设计巅峰',
+    },
+    {
+      name: '1970年代',
+      description: '电子技术开始引入，出现早期电子收银机，薄膜按键兴起',
+    },
+    {
+      name: '1980年代',
+      description: '电子收银机全面普及，LCD显示，多种按键材质并存',
+    },
+    {
+      name: '1990年代',
+      description: 'POS系统兴起，电脑化收银，静音薄膜按键成为主流',
+    },
+    {
+      name: '2000年代',
+      description: '触屏技术开始应用，传统按键式收银机逐渐减少',
+    },
+  ];
+
+  for (const row of eras) {
+    db.run(
+      `INSERT INTO eras (name, description)
+       VALUES (?, ?)`,
+      [row.name, row.description]
+    );
+  }
+
+  console.log(`已写入 ${eras.length} 条年代 seed 数据`);
+}
+
+/**
  * 初始化标签 seed 数据
  */
 function seedTags() {
@@ -169,6 +216,7 @@ function seed() {
   seedDevices();
   seedCollectors();
   seedKeyTypes();
+  seedEras();
   seedTags();
 }
 

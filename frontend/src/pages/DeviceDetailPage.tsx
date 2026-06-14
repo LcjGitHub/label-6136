@@ -21,9 +21,11 @@ import {
 import { IconArrowLeft, IconCopy, IconDeviceFloppy, IconPlus, IconStar, IconStarFilled, IconTrash, IconX } from '@tabler/icons-react';
 import { useDeviceStore } from '../store/deviceStore';
 import { useKeyTypeStore } from '../store/keyTypeStore';
+import { useEraStore } from '../store/eraStore';
 import { useTagStore } from '../store/tagStore';
 import * as tagApi from '../api/tags';
 import { extractErrorMessage } from '../utils/error';
+import { TopNavLinks } from '../components/TopNavLinks';
 import type { DeviceInput } from '../types/device';
 import type { Tag } from '../types/tag';
 
@@ -35,6 +37,7 @@ export function DeviceDetailPage() {
   const navigate = useNavigate();
   const { current, loading, error, fetchOne, create, update, remove, clearCurrent, updateTags } = useDeviceStore();
   const { keyTypes, fetchAll: fetchKeyTypes } = useKeyTypeStore();
+  const { eras, fetchAll: fetchEras } = useEraStore();
   const { tags: allTags, fetchAll: fetchAllTags } = useTagStore();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<DeviceInput | null>(null);
@@ -50,9 +53,10 @@ export function DeviceDetailPage() {
       fetchOne(Number(id));
     }
     fetchKeyTypes();
+    fetchEras();
     fetchAllTags();
     return () => clearCurrent();
-  }, [id, fetchOne, fetchKeyTypes, fetchAllTags, clearCurrent]);
+  }, [id, fetchOne, fetchKeyTypes, fetchEras, fetchAllTags, clearCurrent]);
 
   useEffect(() => {
     if (current) {
@@ -114,6 +118,7 @@ export function DeviceDetailPage() {
   };
 
   const keyTypeOptions = keyTypes.map((k) => k.name);
+  const eraOptions = eras.map((e) => e.name);
 
   const availableTags = allTags.filter(
     (t) => !deviceTags.some((dt) => dt.id === t.id)
@@ -170,12 +175,17 @@ export function DeviceDetailPage() {
 
   return (
     <Container size="md" py="xl">
-      <Anchor component={Link} to="/" mb="lg" inline>
-        <Group gap={4}>
-          <IconArrowLeft size={16} />
-          <span>返回列表</span>
+      <Group justify="space-between" mb="lg">
+        <Anchor component={Link} to="/" inline>
+          <Group gap={4}>
+            <IconArrowLeft size={16} />
+            <span>返回列表</span>
+          </Group>
+        </Anchor>
+        <Group gap="md">
+          <TopNavLinks links={['key-types', 'eras', 'tags', 'collectors', 'collection-records']} withWrapper={false} />
         </Group>
-      </Anchor>
+      </Group>
 
       {copyError && (
         <Alert color="red" mb="lg" onClose={() => setCopyError(null)} withCloseButton>
@@ -199,11 +209,13 @@ export function DeviceDetailPage() {
               value={form.brand_model}
               onChange={(e) => setForm({ ...form, brand_model: e.currentTarget.value })}
             />
-            <TextInput
+            <Autocomplete
               label="年代"
               required
+              placeholder="选择或输入年代"
+              data={eraOptions}
               value={form.era}
-              onChange={(e) => setForm({ ...form, era: e.currentTarget.value })}
+              onChange={(value) => setForm({ ...form, era: value })}
             />
             <Autocomplete
               label="按键类型"

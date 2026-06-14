@@ -15,30 +15,27 @@ import {
   Textarea,
   Title,
 } from '@mantine/core';
-import { IconEdit, IconPlus, IconTag, IconTrash } from '@tabler/icons-react';
-import { useKeyTypeStore } from '../store/keyTypeStore';
+import { IconClock, IconEdit, IconPlus, IconTrash } from '@tabler/icons-react';
+import { useEraStore } from '../store/eraStore';
 import { extractErrorMessage } from '../utils/error';
 import { TopNavLinks } from '../components/TopNavLinks';
-import type { KeyTypeInput } from '../types/keyType';
+import type { EraInput } from '../types/era';
 
-const emptyForm: KeyTypeInput = {
+const emptyForm: EraInput = {
   name: '',
   description: '',
 };
 
-/**
- * 按键类型列表页：展示全部类型，支持新增、编辑与删除
- */
-export function KeyTypeListPage() {
-  const { keyTypes, loading, error, fetchAll, create, update, remove } = useKeyTypeStore();
+export function EraListPage() {
+  const { eras, loading, error, fetchAll, create, update, remove } = useEraStore();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [form, setForm] = useState<KeyTypeInput>(emptyForm);
+  const [form, setForm] = useState<EraInput>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
-    document.title = '按键类型词典';
+    document.title = '年代词典';
   }, []);
 
   useEffect(() => {
@@ -78,7 +75,7 @@ export function KeyTypeListPage() {
   };
 
   const handleDelete = async (id: number, name: string) => {
-    if (window.confirm(`确定删除按键类型「${name}」？`)) {
+    if (window.confirm(`确定删除年代「${name}」？`)) {
       setActionError(null);
       try {
         await remove(id);
@@ -90,15 +87,15 @@ export function KeyTypeListPage() {
 
   return (
     <Container size="lg" py="xl">
-      <TopNavLinks links={['sample-list', 'eras', 'tags', 'collectors', 'collection-records']} />
+      <TopNavLinks links={['sample-list', 'key-types', 'tags', 'collectors', 'collection-records']} />
 
       <Group justify="space-between" mb="lg">
         <Group gap="sm">
-          <IconTag size={28} stroke={1.5} />
-          <Title order={2}>按键类型词典</Title>
+          <IconClock size={28} stroke={1.5} />
+          <Title order={2}>年代词典</Title>
         </Group>
         <Button leftSection={<IconPlus size={16} />} onClick={handleOpenCreate}>
-          新增类型
+          新增年代
         </Button>
       </Group>
 
@@ -118,21 +115,21 @@ export function KeyTypeListPage() {
         <Group justify="center" py="xl">
           <Loader />
         </Group>
-      ) : keyTypes.length === 0 ? (
+      ) : eras.length === 0 ? (
         <Paper withBorder p="xl" ta="center" radius="md">
-          <Text c="dimmed">暂无按键类型</Text>
+          <Text c="dimmed">暂无年代</Text>
         </Paper>
       ) : (
         <Table striped highlightOnHover withTableBorder>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th w={200}>类型名称</Table.Th>
+              <Table.Th w={200}>年代名称</Table.Th>
               <Table.Th>简短说明</Table.Th>
               <Table.Th w={120}>操作</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {keyTypes.map((item) => (
+            {eras.map((item) => (
               <Table.Tr key={item.id}>
                 <Table.Td>
                   <Text fw={500}>{item.name}</Text>
@@ -167,21 +164,21 @@ export function KeyTypeListPage() {
       <Modal
         opened={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editingId !== null ? '编辑按键类型' : '新增按键类型'}
+        title={editingId !== null ? '编辑年代' : '新增年代'}
         size="md"
       >
         <Stack gap="sm">
           <TextInput
-            label="类型名称"
+            label="年代名称"
             required
-            placeholder="如：机械杠杆键"
+            placeholder="如：1980年代"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.currentTarget.value })}
           />
           <Textarea
             label="简短说明"
             minRows={3}
-            placeholder="描述该按键类型的特点"
+            placeholder="描述该年代的特点"
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.currentTarget.value })}
           />

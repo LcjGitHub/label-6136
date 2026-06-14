@@ -5,6 +5,7 @@ import { DeviceComparePage } from './pages/DeviceComparePage';
 import { CollectorListPage } from './pages/CollectorListPage';
 import { CollectorDetailPage } from './pages/CollectorDetailPage';
 import { KeyTypeListPage } from './pages/KeyTypeListPage';
+import { EraListPage } from './pages/EraListPage';
 import { TagListPage } from './pages/TagListPage';
 import { CollectionRecordListPage } from './pages/CollectionRecordListPage';
 import { CollectionRecordDetailPage } from './pages/CollectionRecordDetailPage';
@@ -21,6 +22,7 @@ export function App() {
         <Route path="/collection-records" element={<CollectionRecordListPage />} />
         <Route path="/collection-records/:id" element={<CollectionRecordDetailPage />} />
         <Route path="/key-types" element={<KeyTypeListPage />} />
+        <Route path="/eras" element={<EraListPage />} />
         <Route path="/tags" element={<TagListPage />} />
       </Routes>
     </BrowserRouter>

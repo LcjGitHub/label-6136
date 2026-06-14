@@ -179,7 +179,7 @@ export function DeviceComparePage() {
 
   return (
     <Container size="xl" py="xl">
-      <TopNavLinks links={['key-types', 'tags', 'collectors', 'collection-records']} />
+      <TopNavLinks links={['key-types', 'eras', 'tags', 'collectors', 'collection-records']} />
 
       <Anchor component={Link} to="/" mb="lg" inline>
         <Group gap={4}>
