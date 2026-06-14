@@ -4,11 +4,12 @@
   "description": "老式收银机按键音样本库 - 后端 API",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node src/server.js"
+    "start": "node -r dotenv/config src/server.js",
+    "dev": "node -r dotenv/config src/server.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "sql.js": "^1.12.0"
   }
