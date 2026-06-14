@@ -18,7 +18,6 @@ import {
 import { IconClock, IconEdit, IconPlus, IconTrash } from '@tabler/icons-react';
 import { useEraStore } from '../store/eraStore';
 import { extractErrorMessage } from '../utils/error';
-import { TopNavLinks } from '../components/TopNavLinks';
 import type { EraInput } from '../types/era';
 
 const emptyForm: EraInput = {
@@ -87,8 +86,6 @@ export function EraListPage() {
 
   return (
     <Container size="lg" py="xl">
-      <TopNavLinks links={['sample-list', 'key-types', 'tags', 'collectors', 'collection-records']} />
-
       <Group justify="space-between" mb="lg">
         <Group gap="sm">
           <IconClock size={28} stroke={1.5} />

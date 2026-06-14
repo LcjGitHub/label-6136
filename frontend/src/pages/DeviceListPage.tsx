@@ -26,7 +26,6 @@ import { useDeviceStore } from '../store/deviceStore';
 import { useKeyTypeStore } from '../store/keyTypeStore';
 import { useEraStore } from '../store/eraStore';
 import { extractErrorMessage } from '../utils/error';
-import { TopNavLinks } from '../components/TopNavLinks';
 import type { Device, DeviceInput } from '../types/device';
 
 const emptyForm: DeviceInput = {
@@ -238,8 +237,6 @@ export function DeviceListPage() {
 
   return (
     <Container size="lg" py="xl">
-      <TopNavLinks links={['key-types', 'eras', 'tags', 'collectors', 'collection-records']} />
-
       <Group justify="space-between" mb="lg">
         <Group gap="sm">
           <IconVolume size={28} stroke={1.5} />

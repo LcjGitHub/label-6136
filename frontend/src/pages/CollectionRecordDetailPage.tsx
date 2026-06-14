@@ -20,7 +20,6 @@ import { useCollectionRecordStore } from '../store/collectionRecordStore';
 import { useDeviceStore } from '../store/deviceStore';
 import { useCollectorStore } from '../store/collectorStore';
 import { extractErrorMessage } from '../utils/error';
-import { TopNavLinks } from '../components/TopNavLinks';
 import type { CollectionRecordInput } from '../types/collectionRecord';
 
 export function CollectionRecordDetailPage() {
@@ -143,9 +142,6 @@ export function CollectionRecordDetailPage() {
             <span>返回列表</span>
           </Group>
         </Anchor>
-        <Group gap="md">
-          <TopNavLinks links={['sample-list', 'collectors', 'key-types', 'eras', 'tags', 'collection-records']} withWrapper={false} />
-        </Group>
       </Group>
 
       {actionError && (

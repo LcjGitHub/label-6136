@@ -22,7 +22,6 @@ import { useCollectionRecordStore } from '../store/collectionRecordStore';
 import { useDeviceStore } from '../store/deviceStore';
 import { useCollectorStore } from '../store/collectorStore';
 import { extractErrorMessage } from '../utils/error';
-import { TopNavLinks } from '../components/TopNavLinks';
 import type { CollectionRecordInput } from '../types/collectionRecord';
 
 const emptyForm: CollectionRecordInput = {
@@ -104,8 +103,6 @@ export function CollectionRecordListPage() {
 
   return (
     <Container size="lg" py="xl">
-      <TopNavLinks links={['sample-list', 'collectors', 'key-types', 'eras', 'tags', 'collection-records']} />
-
       <Group justify="space-between" mb="lg">
         <Group gap="sm">
           <IconClipboardList size={28} stroke={1.5} />

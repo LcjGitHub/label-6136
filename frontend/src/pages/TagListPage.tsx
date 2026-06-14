@@ -17,7 +17,6 @@ import {
 import { IconEdit, IconPlus, IconTags, IconTrash } from '@tabler/icons-react';
 import { useTagStore } from '../store/tagStore';
 import { extractErrorMessage } from '../utils/error';
-import { TopNavLinks } from '../components/TopNavLinks';
 import type { TagInput } from '../types/tag';
 
 const emptyForm: TagInput = { name: '' };
@@ -86,8 +85,6 @@ export function TagListPage() {
 
   return (
     <Container size="lg" py="xl">
-      <TopNavLinks links={['sample-list', 'collectors', 'key-types', 'eras', 'collection-records']} />
-
       <Group justify="space-between" mb="lg">
         <Group gap="sm">
           <IconTags size={28} stroke={1.5} />

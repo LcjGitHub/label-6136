@@ -25,7 +25,6 @@ import { useEraStore } from '../store/eraStore';
 import { useTagStore } from '../store/tagStore';
 import * as tagApi from '../api/tags';
 import { extractErrorMessage } from '../utils/error';
-import { TopNavLinks } from '../components/TopNavLinks';
 import type { DeviceInput } from '../types/device';
 import type { Tag } from '../types/tag';
 
@@ -182,9 +181,6 @@ export function DeviceDetailPage() {
             <span>返回列表</span>
           </Group>
         </Anchor>
-        <Group gap="md">
-          <TopNavLinks links={['key-types', 'eras', 'tags', 'collectors', 'collection-records']} withWrapper={false} />
-        </Group>
       </Group>
 
       {copyError && (

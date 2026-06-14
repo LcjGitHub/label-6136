@@ -17,7 +17,6 @@ import {
 import { IconArrowLeft, IconDeviceFloppy, IconTrash } from '@tabler/icons-react';
 import { useCollectorStore } from '../store/collectorStore';
 import { extractErrorMessage } from '../utils/error';
-import { TopNavLinks } from '../components/TopNavLinks';
 import type { CollectorInput } from '../types/collector';
 
 /**
@@ -120,9 +119,6 @@ export function CollectorDetailPage() {
             <span>返回列表</span>
           </Group>
         </Anchor>
-        <Group gap="md">
-          <TopNavLinks links={['key-types', 'eras', 'tags', 'sample-list', 'collection-records']} withWrapper={false} />
-        </Group>
       </Group>
 
       {actionError && (

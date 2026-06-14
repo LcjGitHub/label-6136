@@ -19,7 +19,6 @@ import { IconArrowLeft, IconExchange, IconStar, IconStarFilled } from '@tabler/i
 import { useDeviceStore } from '../store/deviceStore';
 import { compareDevices } from '../api/devices';
 import { extractErrorMessage } from '../utils/error';
-import { TopNavLinks } from '../components/TopNavLinks';
 import type { Device } from '../types/device';
 
 const DIFF_HIGHLIGHT_STYLE = {
@@ -179,8 +178,6 @@ export function DeviceComparePage() {
 
   return (
     <Container size="xl" py="xl">
-      <TopNavLinks links={['key-types', 'eras', 'tags', 'collectors', 'collection-records']} />
-
       <Anchor component={Link} to="/" mb="lg" inline>
         <Group gap={4}>
           <IconArrowLeft size={16} />

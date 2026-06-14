@@ -18,7 +18,6 @@ import {
 import { IconEdit, IconPlus, IconTag, IconTrash } from '@tabler/icons-react';
 import { useKeyTypeStore } from '../store/keyTypeStore';
 import { extractErrorMessage } from '../utils/error';
-import { TopNavLinks } from '../components/TopNavLinks';
 import type { KeyTypeInput } from '../types/keyType';
 
 const emptyForm: KeyTypeInput = {
@@ -90,8 +89,6 @@ export function KeyTypeListPage() {
 
   return (
     <Container size="lg" py="xl">
-      <TopNavLinks links={['sample-list', 'eras', 'tags', 'collectors', 'collection-records']} />
-
       <Group justify="space-between" mb="lg">
         <Group gap="sm">
           <IconTag size={28} stroke={1.5} />

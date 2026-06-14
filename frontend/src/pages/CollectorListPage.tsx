@@ -19,7 +19,6 @@ import {
 import { IconPlus, IconTrash, IconUser } from '@tabler/icons-react';
 import { useCollectorStore } from '../store/collectorStore';
 import { extractErrorMessage } from '../utils/error';
-import { TopNavLinks } from '../components/TopNavLinks';
 import type { CollectorInput } from '../types/collector';
 
 const emptyForm: CollectorInput = {
@@ -73,8 +72,6 @@ export function CollectorListPage() {
 
   return (
     <Container size="lg" py="xl">
-      <TopNavLinks links={['sample-list', 'key-types', 'eras', 'tags', 'collection-records']} />
-
       <Group justify="space-between" mb="lg">
         <Group gap="sm">
           <IconUser size={28} stroke={1.5} />
