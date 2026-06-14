@@ -36,6 +36,7 @@ import { useKeyTypeStore } from '../store/keyTypeStore';
 import { useEraStore } from '../store/eraStore';
 import { useTagStore } from '../store/tagStore';
 import { useOperationLogStore } from '../store/operationLogStore';
+import { useFavoriteStore } from '../store/favoriteStore';
 import * as tagApi from '../api/tags';
 import { extractErrorMessage } from '../utils/error';
 import type { DeviceInput } from '../types/device';
@@ -66,6 +67,7 @@ export function DeviceDetailPage() {
     clearSampleLogs,
     clearSampleLogsError,
   } = useOperationLogStore();
+  const { isFavorite, toggleFavorite } = useFavoriteStore();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<DeviceInput | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -223,7 +225,22 @@ export function DeviceDetailPage() {
       )}
 
       <Group justify="space-between" mb="lg">
-        <Title order={2}>{current.brand_model}</Title>
+        <Group gap="sm">
+          <Title order={2}>{current.brand_model}</Title>
+          <ActionIcon
+            color={isFavorite(current.id) ? 'yellow' : 'gray'}
+            variant="subtle"
+            size="lg"
+            aria-label={isFavorite(current.id) ? '取消收藏' : '收藏'}
+            onClick={() => toggleFavorite(current.id)}
+          >
+            {isFavorite(current.id) ? (
+              <IconStarFilled size={24} />
+            ) : (
+              <IconStar size={24} />
+            )}
+          </ActionIcon>
+        </Group>
         <Badge size="lg" variant="light">
           {current.era}
         </Badge>
@@ -432,6 +449,20 @@ export function DeviceDetailPage() {
               onClick={handleCopy}
             >
               复制
+            </Button>
+            <Button
+              color={isFavorite(current.id) ? 'yellow' : 'default'}
+              variant="light"
+              leftSection={
+                isFavorite(current.id) ? (
+                  <IconStarFilled size={16} />
+                ) : (
+                  <IconStar size={16} />
+                )
+              }
+              onClick={() => toggleFavorite(current.id)}
+            >
+              {isFavorite(current.id) ? '取消收藏' : '收藏'}
             </Button>
             <Button
               color="red"

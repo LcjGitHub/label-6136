@@ -25,6 +25,7 @@ import { IconDownload, IconExchange, IconPlus, IconSearch, IconStar, IconStarFil
 import { useDeviceStore } from '../store/deviceStore';
 import { useKeyTypeStore } from '../store/keyTypeStore';
 import { useEraStore } from '../store/eraStore';
+import { useFavoriteStore } from '../store/favoriteStore';
 import { extractErrorMessage } from '../utils/error';
 import type { Device, DeviceInput } from '../types/device';
 
@@ -69,6 +70,7 @@ export function DeviceListPage() {
   } = useDeviceStore();
   const { keyTypes, fetchAll: fetchKeyTypes } = useKeyTypeStore();
   const { eras, fetchAll: fetchEras } = useEraStore();
+  const { isFavorite, toggleFavorite } = useFavoriteStore();
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<DeviceInput>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
@@ -408,101 +410,131 @@ export function DeviceListPage() {
         </Group>
       ) : devices.length === 0 ? (
         <Table striped highlightOnHover withTableBorder>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>品牌型号</Table.Th>
-              <Table.Th>年代</Table.Th>
-              <Table.Th>按键类型</Table.Th>
-              <Table.Th>音质评分</Table.Th>
-              <Table.Th>标签</Table.Th>
-              <Table.Th>获取地点</Table.Th>
-              <Table.Th w={80}>操作</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            <Table.Tr>
-              <Table.Td colSpan={7} ta="center" py="xl">
-                <Text c="dimmed">
-                  {searchKeyword ? `未找到与「${searchKeyword}」匹配的样本` : '暂无样本数据'}
-                </Text>
-              </Table.Td>
-            </Table.Tr>
-          </Table.Tbody>
-        </Table>
-      ) : (
-        <>
-          <Table striped highlightOnHover withTableBorder>
             <Table.Thead>
               <Table.Tr>
+                <Table.Th w={60}>收藏</Table.Th>
                 <Table.Th>品牌型号</Table.Th>
                 <Table.Th>年代</Table.Th>
                 <Table.Th>按键类型</Table.Th>
                 <Table.Th>音质评分</Table.Th>
                 <Table.Th>标签</Table.Th>
                 <Table.Th>获取地点</Table.Th>
-                <Table.Th w={80}>操作</Table.Th>
+                <Table.Th w={100}>操作</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {devices.map((device) => (
-                <Table.Tr key={device.id}>
-                  <Table.Td>
-                    <Text component={Link} to={`/devices/${device.id}`} fw={500} c="blue">
-                      {device.brand_model}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Badge variant="light">{device.era}</Badge>
-                  </Table.Td>
-                  <Table.Td>{device.key_type}</Table.Td>
-                  <Table.Td>
-                    {(() => {
-                      const rating = device.sound_rating;
-                      if (rating == null) {
-                        return <Text size="sm" c="dimmed">—</Text>;
-                      }
-                      return (
-                        <Group gap={2}>
-                          {[1, 2, 3, 4, 5].map((value) =>
-                            rating >= value ? (
-                              <IconStarFilled key={value} size={14} color="#fbbf24" fill="#fbbf24" />
-                            ) : (
-                              <IconStar key={value} size={14} color="#d1d5db" />
-                            )
-                          )}
-                          <Text size="xs" c="dimmed" ml={4}>
-                            {rating}
-                          </Text>
+              <Table.Tr>
+                <Table.Td colSpan={8} ta="center" py="xl">
+                  <Text c="dimmed">
+                    {searchKeyword ? `未找到与「${searchKeyword}」匹配的样本` : '暂无样本数据'}
+                  </Text>
+                </Table.Td>
+              </Table.Tr>
+            </Table.Tbody>
+          </Table>
+      ) : (
+        <>
+          <Table striped highlightOnHover withTableBorder>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th w={60}>收藏</Table.Th>
+                <Table.Th>品牌型号</Table.Th>
+                <Table.Th>年代</Table.Th>
+                <Table.Th>按键类型</Table.Th>
+                <Table.Th>音质评分</Table.Th>
+                <Table.Th>标签</Table.Th>
+                <Table.Th>获取地点</Table.Th>
+                <Table.Th w={100}>操作</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {devices.map((device) => {
+                const favorited = isFavorite(device.id);
+                return (
+                  <Table.Tr key={device.id}>
+                    <Table.Td>
+                      <ActionIcon
+                        color={favorited ? 'yellow' : 'gray'}
+                        variant="subtle"
+                        aria-label={favorited ? '取消收藏' : '收藏'}
+                        onClick={() => toggleFavorite(device.id)}
+                      >
+                        {favorited ? (
+                          <IconStarFilled size={18} />
+                        ) : (
+                          <IconStar size={18} />
+                        )}
+                      </ActionIcon>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text component={Link} to={`/devices/${device.id}`} fw={500} c="blue">
+                        {device.brand_model}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Badge variant="light">{device.era}</Badge>
+                    </Table.Td>
+                    <Table.Td>{device.key_type}</Table.Td>
+                    <Table.Td>
+                      {(() => {
+                        const rating = device.sound_rating;
+                        if (rating == null) {
+                          return <Text size="sm" c="dimmed">—</Text>;
+                        }
+                        return (
+                          <Group gap={2}>
+                            {[1, 2, 3, 4, 5].map((value) =>
+                              rating >= value ? (
+                                <IconStarFilled key={value} size={14} color="#fbbf24" fill="#fbbf24" />
+                              ) : (
+                                <IconStar key={value} size={14} color="#d1d5db" />
+                              )
+                            )}
+                            <Text size="xs" c="dimmed" ml={4}>
+                              {rating}
+                            </Text>
+                          </Group>
+                        );
+                      })()}
+                    </Table.Td>
+                    <Table.Td>
+                      {(device.tags || []).length > 0 ? (
+                        <Group gap={4}>
+                          {device.tags.map((tag) => (
+                            <Badge key={tag.id} variant="light" color="grape" size="sm">
+                              {tag.name}
+                            </Badge>
+                          ))}
                         </Group>
-                      );
-                    })()}
-                  </Table.Td>
-                  <Table.Td>
-                    {(device.tags || []).length > 0 ? (
+                      ) : (
+                        <Text size="sm" c="dimmed">无</Text>
+                      )}
+                    </Table.Td>
+                    <Table.Td>{device.location}</Table.Td>
+                    <Table.Td>
                       <Group gap={4}>
-                        {device.tags.map((tag) => (
-                          <Badge key={tag.id} variant="light" color="grape" size="sm">
-                            {tag.name}
-                          </Badge>
-                        ))}
+                        <ActionIcon
+                          component={Link}
+                          to={`/devices/${device.id}`}
+                          color="blue"
+                          variant="subtle"
+                          aria-label="查看详情"
+                        >
+                          <IconVolume size={16} />
+                        </ActionIcon>
+                        <ActionIcon
+                          color="red"
+                          variant="subtle"
+                          aria-label="删除"
+                          onClick={() => handleDelete(device.id, device.brand_model)}
+                        >
+                          <IconTrash size={16} />
+                        </ActionIcon>
                       </Group>
-                    ) : (
-                      <Text size="sm" c="dimmed">无</Text>
-                    )}
-                  </Table.Td>
-                  <Table.Td>{device.location}</Table.Td>
-                  <Table.Td>
-                    <ActionIcon
-                      color="red"
-                      variant="subtle"
-                      aria-label="删除"
-                      onClick={() => handleDelete(device.id, device.brand_model)}
-                    >
-                      <IconTrash size={16} />
-                    </ActionIcon>
-                  </Table.Td>
-                </Table.Tr>
-              ))}
+                    </Table.Td>
+                  </Table.Tr>
+                );
+              })}
             </Table.Tbody>
           </Table>
 

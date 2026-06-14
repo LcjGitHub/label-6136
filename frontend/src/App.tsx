@@ -11,6 +11,7 @@ import { TagListPage } from './pages/TagListPage';
 import { CollectionRecordListPage } from './pages/CollectionRecordListPage';
 import { CollectionRecordDetailPage } from './pages/CollectionRecordDetailPage';
 import { OperationLogListPage } from './pages/OperationLogListPage';
+import { FavoriteListPage } from './pages/FavoriteListPage';
 
 export function App() {
   return (
@@ -18,6 +19,7 @@ export function App() {
       <Routes>
         <Route element={<AppLayout />}>
           <Route path="/" element={<DeviceListPage />} />
+          <Route path="/favorites" element={<FavoriteListPage />} />
           <Route path="/devices/compare" element={<DeviceComparePage />} />
           <Route path="/devices/:id" element={<DeviceDetailPage />} />
           <Route path="/collectors" element={<CollectorListPage />} />

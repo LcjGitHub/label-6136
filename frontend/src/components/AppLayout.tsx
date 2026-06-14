@@ -18,6 +18,7 @@ import {
   IconUser,
   IconHome,
   IconHistory,
+  IconStarFilled,
 } from '@tabler/icons-react';
 
 interface PageTitleContextType {
@@ -46,6 +47,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { key: 'sample-list', label: '样本列表', to: '/', icon: <IconVolume size={20} /> },
+  { key: 'favorites', label: '我的收藏', to: '/favorites', icon: <IconStarFilled size={20} /> },
   { key: 'sample-compare', label: '样本对比', to: '/devices/compare', icon: <IconExchange size={20} /> },
   { key: 'key-types', label: '按键类型词典', to: '/key-types', icon: <IconTag size={20} /> },
   { key: 'tags', label: '标签管理', to: '/tags', icon: <IconTags size={20} /> },
@@ -55,6 +57,7 @@ const NAV_ITEMS: NavItem[] = [
 
 const DEFAULT_TITLES: Record<string, string> = {
   '/': '样本列表',
+  '/favorites': '我的收藏',
   '/devices/compare': '样本对比',
   '/key-types': '按键类型词典',
   '/tags': '标签管理',
