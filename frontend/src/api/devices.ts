@@ -112,3 +112,19 @@ export async function compareDevices(id1: number, id2: number): Promise<CompareD
   });
   return data;
 }
+
+export interface StatisticsGroup {
+  name: string;
+  count: number;
+}
+
+export interface StatisticsResponse {
+  total: number;
+  eraGroups: StatisticsGroup[];
+  keyTypeGroups: StatisticsGroup[];
+}
+
+export async function fetchDeviceStatistics(): Promise<StatisticsResponse> {
+  const { data } = await api.get<StatisticsResponse>('/devices/statistics');
+  return data;
+}

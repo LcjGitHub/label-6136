@@ -7,12 +7,14 @@ import {
   Autocomplete,
   Badge,
   Button,
+  Card,
   Container,
   Group,
   Loader,
   Modal,
   Pagination,
   Radio,
+  SimpleGrid,
   Stack,
   Table,
   Text,
@@ -62,15 +64,19 @@ export function DeviceListPage() {
   const {
     devices,
     loading,
+    statisticsLoading,
     exporting,
     restoring,
     error,
+    statisticsError,
     actionSuccess,
     searchKeyword,
     page,
     pageSize,
     total,
+    statistics,
     fetchAll,
+    fetchStatistics,
     create,
     remove,
     exportData,
@@ -93,9 +99,8 @@ export function DeviceListPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetchAll();
-    fetchKeyTypes();
-  }, [fetchAll, fetchKeyTypes]);
+    Promise.all([fetchAll(), fetchKeyTypes(), fetchStatistics()]);
+  }, [fetchAll, fetchKeyTypes, fetchStatistics]);
 
   useEffect(() => {
     if (actionSuccess) {
@@ -296,6 +301,81 @@ export function DeviceListPage() {
           </Button>
         </Group>
       </Group>
+
+      {statisticsError && (
+        <Alert color="red" mb="md">
+          {statisticsError}
+        </Alert>
+      )}
+
+      <SimpleGrid cols={{ base: 1, sm: 3 }} mb="lg">
+        <Card withBorder shadow="sm" padding="lg" radius="md">
+          <Stack gap="sm">
+            <Text size="sm" c="dimmed" fw={500}>
+              样本总数
+            </Text>
+            {statisticsLoading ? (
+              <Group justify="flex-start">
+                <Loader size="sm" />
+              </Group>
+            ) : (
+              <Text size="xl" fw={700} c="blue">
+                {statistics?.total ?? 0}
+              </Text>
+            )}
+          </Stack>
+        </Card>
+
+        <Card withBorder shadow="sm" padding="lg" radius="md">
+          <Stack gap="sm">
+            <Text size="sm" c="dimmed" fw={500}>
+              年代分布
+            </Text>
+            {statisticsLoading ? (
+              <Group justify="flex-start">
+                <Loader size="sm" />
+              </Group>
+            ) : (
+              <Group gap="xs" wrap="wrap">
+                {statistics?.eraGroups.length === 0 ? (
+                  <Text size="sm" c="dimmed">暂无数据</Text>
+                ) : (
+                  statistics?.eraGroups.map((item) => (
+                    <Badge key={item.name} variant="light" color="teal" size="lg">
+                      {item.name} · {item.count}
+                    </Badge>
+                  ))
+                )}
+              </Group>
+            )}
+          </Stack>
+        </Card>
+
+        <Card withBorder shadow="sm" padding="lg" radius="md">
+          <Stack gap="sm">
+            <Text size="sm" c="dimmed" fw={500}>
+              按键类型分布
+            </Text>
+            {statisticsLoading ? (
+              <Group justify="flex-start">
+                <Loader size="sm" />
+              </Group>
+            ) : (
+              <Group gap="xs" wrap="wrap">
+                {statistics?.keyTypeGroups.length === 0 ? (
+                  <Text size="sm" c="dimmed">暂无数据</Text>
+                ) : (
+                  statistics?.keyTypeGroups.map((item) => (
+                    <Badge key={item.name} variant="light" color="grape" size="lg">
+                      {item.name} · {item.count}
+                    </Badge>
+                  ))
+                )}
+              </Group>
+            )}
+          </Stack>
+        </Card>
+      </SimpleGrid>
 
       <Group mb="md">
         <TextInput

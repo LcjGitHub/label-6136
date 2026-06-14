@@ -2,22 +2,31 @@ import { create } from 'zustand';
 import type { Device, DeviceInput } from '../types/device';
 import type { Tag } from '../types/tag';
 import * as deviceApi from '../api/devices';
-import type { ExportResponse, RestoreRequest, RestoreResponse } from '../api/devices';
+import type {
+  ExportResponse,
+  RestoreRequest,
+  RestoreResponse,
+  StatisticsResponse,
+} from '../api/devices';
 
 interface DeviceState {
   devices: Device[];
   current: Device | null;
   loading: boolean;
+  statisticsLoading: boolean;
   exporting: boolean;
   restoring: boolean;
   error: string | null;
+  statisticsError: string | null;
   actionSuccess: string | null;
   searchKeyword: string;
   page: number;
   pageSize: number;
   total: number;
+  statistics: StatisticsResponse | null;
   fetchAll: (keyword?: string, page?: number, pageSize?: number) => Promise<void>;
   fetchOne: (id: number) => Promise<void>;
+  fetchStatistics: () => Promise<void>;
   create: (input: DeviceInput) => Promise<Device>;
   update: (id: number, input: DeviceInput) => Promise<Device>;
   remove: (id: number) => Promise<void>;
@@ -39,14 +48,27 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
   devices: [],
   current: null,
   loading: false,
+  statisticsLoading: false,
   exporting: false,
   restoring: false,
   error: null,
+  statisticsError: null,
   actionSuccess: null,
   searchKeyword: '',
   page: 1,
   pageSize: 3,
   total: 0,
+  statistics: null,
+
+  fetchStatistics: async () => {
+    set({ statisticsLoading: true, statisticsError: null });
+    try {
+      const result = await deviceApi.fetchDeviceStatistics();
+      set({ statistics: result, statisticsLoading: false });
+    } catch {
+      set({ statisticsLoading: false, statisticsError: '加载统计数据失败' });
+    }
+  },
 
   fetchAll: async (keyword?: string, page?: number, pageSize?: number) => {
     set({ loading: true, error: null });
@@ -83,7 +105,10 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
   create: async (input: DeviceInput) => {
     const created = await deviceApi.createDevice(input);
     const state = get();
-    await state.fetchAll(state.searchKeyword, 1, state.pageSize);
+    await Promise.all([
+      state.fetchAll(state.searchKeyword, 1, state.pageSize),
+      state.fetchStatistics(),
+    ]);
     return created;
   },
 
@@ -101,7 +126,10 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
     const state = get();
     const maxPage = Math.max(1, Math.ceil((state.total - 1) / state.pageSize));
     const newPage = Math.min(state.page, maxPage);
-    await state.fetchAll(state.searchKeyword, newPage, state.pageSize);
+    await Promise.all([
+      state.fetchAll(state.searchKeyword, newPage, state.pageSize),
+      state.fetchStatistics(),
+    ]);
   },
 
   updateTags: (id: number, tags: Tag[]) => {
@@ -132,7 +160,10 @@ export const useDeviceStore = create<DeviceState>((set, get) => ({
     try {
       const result = await deviceApi.restoreDevices(request);
       const state = get();
-      await state.fetchAll(state.searchKeyword, 1, state.pageSize);
+      await Promise.all([
+        state.fetchAll(state.searchKeyword, 1, state.pageSize),
+        state.fetchStatistics(),
+      ]);
       set({ restoring: false, actionSuccess: result.message });
       return result;
     } catch (err) {

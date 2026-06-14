@@ -31,6 +31,29 @@ function validateSoundRating(rating) {
 }
 
 /**
+ * 获取统计数据
+ * 返回：样本总数、各年代分组数量、各按键类型分组数量
+ */
+router.get('/statistics', (_req, res) => {
+  const totalResult = db.get('SELECT COUNT(*) as total FROM devices');
+  const total = totalResult.total;
+
+  const eraGroups = db.all(
+    'SELECT era as name, COUNT(*) as count FROM devices GROUP BY era ORDER BY count DESC, era ASC'
+  );
+
+  const keyTypeGroups = db.all(
+    'SELECT key_type as name, COUNT(*) as count FROM devices GROUP BY key_type ORDER BY count DESC, key_type ASC'
+  );
+
+  res.json({
+    total,
+    eraGroups,
+    keyTypeGroups,
+  });
+});
+
+/**
  * 获取设备列表（支持分页和搜索）
  * 查询参数：
  *   keyword（可选）- 按品牌型号、获取地点、声音描述模糊匹配
